@@ -84,3 +84,15 @@ export const educationService = {
     return api.post(url, postBody)
   }
 }
+
+export type ContactDto = Omit<Contact, 'createTime' | 'updateTime'>
+export const contactService = {
+  getContact: async (): Promise<BaseVo<Contact>> => {
+    const url = `${basePath}/contact`
+    return api.get(url)
+  },
+  updateContact: async (postBody: ContactDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/contact`
+    return api.post(url, postBody)
+  }
+}

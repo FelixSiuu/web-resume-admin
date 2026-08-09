@@ -66,3 +66,23 @@ declare interface LoginVo {
   token: string
   username: string
 }
+
+declare interface SocialLinks {
+  [key: string]: string
+}
+
+declare interface PublicMap {
+  [key: string]: boolean
+}
+
+declare interface Contact {
+  displayName: string | null
+  title: string | null
+  email: string
+  phone: string | null
+  address: string | null
+  socialLinks: SocialLinks | null
+  publicMap: PublicMap | null
+  createTime: string | null
+  updateTime: string | null
+}
