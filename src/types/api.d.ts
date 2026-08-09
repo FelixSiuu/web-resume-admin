@@ -67,8 +67,11 @@ declare interface LoginVo {
   username: string
 }
 
+declare type SocialLinkPlatform = 'github' | 'linkedin'
+
 declare interface SocialLinks {
-  [key: string]: string
+  github?: string
+  linkedin?: string
 }
 
 declare interface PublicMap {

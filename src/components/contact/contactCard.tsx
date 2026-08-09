@@ -2,12 +2,17 @@
 
 import { useEffect } from 'react'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Checkbox, Form, Input, Space, message } from 'antd'
+import { Button, Card, Checkbox, Form, Input, Select, Space, message } from 'antd'
 import useContactHooks from '@/hooks/useContactHooks'
 import type { ContactDto } from '@/services/myInfo.service'
 
+const socialPlatformOptions: Array<{ label: string; value: SocialLinkPlatform }> = [
+  { label: 'GitHub', value: 'github' },
+  { label: 'LinkedIn', value: 'linkedin' }
+]
+
 type SocialLinkFormItem = {
-  key: string
+  key: SocialLinkPlatform
   url: string
   isPublic: boolean
 }
@@ -50,11 +55,13 @@ const toFormValues = (contact?: Contact): ContactFormValues => {
   if (!contact) return getDefaultFormValues()
 
   const defaultValues = getDefaultFormValues()
-  const socialLinks = Object.entries(contact.socialLinks || {}).map(([key, url]) => ({
-    key,
-    url,
-    isPublic: Boolean(contact.publicMap?.[key])
-  }))
+  const socialLinks = Object.entries(contact.socialLinks || {})
+    .filter(([key]) => key === 'github' || key === 'linkedin')
+    .map(([key, url]) => ({
+      key: key as SocialLinkPlatform,
+      url,
+      isPublic: Boolean(contact.publicMap?.[key])
+    }))
 
   return {
     displayName: contact.displayName || '',
@@ -96,7 +103,7 @@ export default function ContactCard() {
   const handleSave = async (values: ContactFormValues) => {
     const socialLinkItems = values.socialLinks
       .map((item) => ({
-        key: item.key.trim(),
+        key: item.key,
         url: item.url.trim(),
         isPublic: item.isPublic
       }))
@@ -168,11 +175,13 @@ export default function ContactCard() {
                         { required: true, message: 'Please input platform!' },
                         {
                           validator: async (_, value: string) => {
-                            const normalizedValue = value?.trim().toLowerCase()
-                            if (!normalizedValue) return
+                            if (!value) return
+                            if (value !== 'github' && value !== 'linkedin') {
+                              throw new Error('Platform must be github or linkedin!')
+                            }
 
                             const socialLinks = form.getFieldValue('socialLinks') || []
-                            const duplicateCount = socialLinks.filter((item: SocialLinkFormItem) => item.key?.trim().toLowerCase() === normalizedValue).length
+                            const duplicateCount = socialLinks.filter((item: SocialLinkFormItem) => item.key === value).length
 
                             if (duplicateCount > 1) {
                               throw new Error('Platform key must be unique!')
@@ -181,7 +190,7 @@ export default function ContactCard() {
                         }
                       ]}
                     >
-                      <Input placeholder="github / linkedin" />
+                      <Select options={socialPlatformOptions} placeholder="Select platform" />
                     </Form.Item>
 
                     <Form.Item
@@ -214,7 +223,7 @@ export default function ContactCard() {
                 ))}
 
                 <Form.Item>
-                  <Button type="dashed" onClick={() => add({ key: '', url: '', isPublic: false })} icon={<PlusOutlined />}>
+                  <Button type="dashed" onClick={() => add({ key: 'github', url: '', isPublic: false })} icon={<PlusOutlined />}>
                     Add social link
                   </Button>
                 </Form.Item>
