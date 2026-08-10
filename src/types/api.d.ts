@@ -66,3 +66,26 @@ declare interface LoginVo {
   token: string
   username: string
 }
+
+declare type SocialLinkPlatform = 'github' | 'linkedin'
+
+declare interface SocialLinks {
+  github?: string
+  linkedin?: string
+}
+
+declare interface PublicMap {
+  [key: string]: boolean
+}
+
+declare interface Contact {
+  displayName: string | null
+  title: string | null
+  email: string
+  phone: string | null
+  address: string | null
+  socialLinks: SocialLinks | null
+  publicMap: PublicMap | null
+  createTime: string | null
+  updateTime: string | null
+}

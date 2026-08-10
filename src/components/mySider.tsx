@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined, FilePdfOutlined } from '@ant-design/icons'
+import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined, FilePdfOutlined, ContactsOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { usePathname, useRouter } from 'next/navigation'
@@ -28,6 +28,11 @@ const MenuItems = [
     key: '/overview/education',
     icon: <BookOutlined />,
     label: 'Education'
+  },
+  {
+    key: '/overview/contact',
+    icon: <ContactsOutlined />,
+    label: 'Contact'
   },
   {
     key: '/overview/export-pdf',
