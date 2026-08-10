@@ -23,11 +23,11 @@ export type EditableColumnType<T> = Omit<ColumnType<T>, 'onCell'> & {
 export type EditableColumnsType<T> = EditableColumnType<T>[]
 
 export const getActionColums = <T extends CoreSkill>(actions: ColumnActions<T>, isEditing: (record: T) => boolean): EditableColumnsType<T> => [
-  {
-    title: 'id',
-    dataIndex: 'id',
-    key: 'id'
-  },
+  // {
+  //   title: 'id',
+  //   dataIndex: 'id',
+  //   key: 'id'
+  // },
   {
     title: 'summary',
     dataIndex: 'summary',

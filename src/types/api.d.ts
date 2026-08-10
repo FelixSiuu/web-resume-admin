@@ -62,7 +62,6 @@ declare interface Education {
 }
 
 declare interface LoginVo {
-  id: string
   token: string
   username: string
 }

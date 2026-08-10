@@ -36,7 +36,7 @@ const Login = () => {
       const data = await login(postBody)
 
       Cookies.set('token', data.token, { expires: 2 })
-      setUser({ id: data.id, username: data.username })
+      setUser({ username: data.username })
       messageApi.destroy()
 
       router.push('/overview')
