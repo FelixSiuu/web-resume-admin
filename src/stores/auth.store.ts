@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type AuthUser = Pick<LoginVo, 'id' | 'username'> | null
+type AuthUser = Pick<LoginVo, 'username'> | null
 
 interface AuthState {
   user: AuthUser

@@ -9,11 +9,11 @@ interface ColumnActions<T> {
 }
 
 export const getWorkingExperienceColumns = <T extends WorkingExperience>(actions: ColumnActions<T>): ColumnsType<T> => [
-  {
-    title: 'id',
-    dataIndex: 'id',
-    key: 'id'
-  },
+  // {
+  //   title: 'id',
+  //   dataIndex: 'id',
+  //   key: 'id'
+  // },
   {
     title: 'start date',
     dataIndex: 'startDate',
@@ -76,16 +76,16 @@ export const getWorkingExperienceColumns = <T extends WorkingExperience>(actions
 ]
 
 export const getSubTableColumns = <T extends KeyResponsibility>(): ColumnsType<T> => [
-  {
-    title: 'id',
-    dataIndex: 'id',
-    key: 'id'
-  },
-  {
-    title: 'working id',
-    dataIndex: 'workingId',
-    key: 'workingId'
-  },
+  // {
+  //   title: 'id',
+  //   dataIndex: 'id',
+  //   key: 'id'
+  // },
+  // {
+  //   title: 'working id',
+  //   dataIndex: 'workingId',
+  //   key: 'workingId'
+  // },
   {
     title: 'title',
     dataIndex: 'title',
