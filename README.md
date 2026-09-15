@@ -50,6 +50,12 @@ npm run lint
 npm run build
 ```
 
+## Tests
+
+```bash
+npm run test
+```
+
 ## Main Routes
 
 - `/login`: login, captcha, register modal
