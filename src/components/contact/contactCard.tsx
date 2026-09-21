@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Checkbox, Form, Input, Select, Space, message } from 'antd'
+import { Avatar, Button, Card, Checkbox, Divider, Form, Input, Popconfirm, Select, Space, Upload, message } from 'antd'
 import useContactHooks from '@/hooks/useContactHooks'
+import useAvatarHooks from '@/hooks/useAvatarHooks'
 import type { ContactDto } from '@/services/myInfo.service'
+import { cropAvatarToSquare, validateAvatarFile } from '@/utils/avatar'
 
 const socialPlatformOptions: Array<{ label: string; value: SocialLinkPlatform }> = [
   { label: 'GitHub', value: 'github' },
@@ -95,6 +97,7 @@ export default function ContactCard() {
   const [messageApi, contextHolder] = message.useMessage()
   const [form] = Form.useForm<ContactFormValues>()
   const { data, isLoading, updateContact, isUpdateLoading } = useContactHooks()
+  const { avatarPreview, uploadAvatar, isUploadingAvatar, removeAvatar, isRemovingAvatar, refetchAvatar, isAvatarLoading } = useAvatarHooks()
 
   useEffect(() => {
     form.setFieldsValue(toFormValues(data))
@@ -140,11 +143,79 @@ export default function ContactCard() {
     }
   }
 
+  const handleBeforeUpload = async (file: File) => {
+    const { isValid, errorMessage } = validateAvatarFile(file)
+    if (!isValid) {
+      messageApi.error(errorMessage || 'Invalid avatar file.')
+      return Upload.LIST_IGNORE
+    }
+    return true
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleAvatarUpload = async (options: any) => {
+    const avatarFile = options.file as File
+
+    try {
+      const croppedFile = await cropAvatarToSquare(avatarFile)
+      await uploadAvatar(croppedFile)
+      await refetchAvatar()
+      messageApi.success('Avatar uploaded successfully!')
+      options.onSuccess?.({}, new XMLHttpRequest())
+    } catch (error) {
+      const messageText = error instanceof Error ? error.message : 'Failed to upload avatar.'
+      messageApi.error(messageText)
+      options.onError?.(new Error(messageText))
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    try {
+      await removeAvatar()
+      await refetchAvatar()
+      messageApi.success('Avatar removed successfully!')
+    } catch (error) {
+      if (error instanceof Error) {
+        messageApi.error(error.message)
+      }
+    }
+  }
+
+  const avatarActionLoading = isUploadingAvatar || isRemovingAvatar || isAvatarLoading
+
   return (
     <section>
       {contextHolder}
 
       <Card loading={isLoading}>
+        <div className="mb-6">
+          <h3 className="text-lg font-medium mb-4">Avatar</h3>
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            {avatarPreview ? <img src={avatarPreview} alt="Avatar preview" className="h-24 w-24 rounded-full object-cover border border-gray-200" /> : <Avatar size={96}>N/A</Avatar>}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Upload accept="image/jpeg,image/png,image/webp" showUploadList={false} beforeUpload={handleBeforeUpload} customRequest={handleAvatarUpload} disabled={avatarActionLoading}>
+                <Button type="primary" loading={isUploadingAvatar}>
+                  Upload Avatar
+                </Button>
+              </Upload>
+
+              {avatarPreview && (
+                <Popconfirm title="Remove current avatar?" onConfirm={handleRemoveAvatar} okButtonProps={{ loading: isRemovingAvatar }}>
+                  <Button danger loading={isRemovingAvatar}>
+                    Remove Avatar
+                  </Button>
+                </Popconfirm>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs text-gray-500">Allowed formats: JPG / PNG / WEBP, max 2MB.</p>
+        </div>
+
+        <Divider />
+
         <Form<ContactFormValues> form={form} layout="vertical" initialValues={getDefaultFormValues()} onFinish={handleSave} disabled={isUpdateLoading}>
           {fixedFields.map((field) => (
             <div key={field.key} className="grid grid-cols-1 md:grid-cols-[1fr_auto] md:items-center md:gap-4">
@@ -216,7 +287,7 @@ export default function ContactCard() {
                       <Checkbox />
                     </Form.Item>
 
-                    <Button danger type="text" icon={<MinusCircleOutlined />} onClick={() => remove(name)} className="mt-[30px]">
+                    <Button danger type="text" icon={<MinusCircleOutlined />} onClick={() => remove(name)} className="mt-7.5">
                       Remove
                     </Button>
                   </Space>
