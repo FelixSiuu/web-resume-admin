@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button, Layout, theme } from 'antd'
 import { LogoutOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/dist/client/components/navigation'
+import { useRouter } from 'next/navigation'
 import { clearAuthSession } from '@/services/auth-session'
 import { useAuthStore } from '@/stores/auth.store'
 

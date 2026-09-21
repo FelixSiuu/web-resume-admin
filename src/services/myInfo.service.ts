@@ -96,3 +96,24 @@ export const contactService = {
     return api.post(url, postBody)
   }
 }
+
+export const avatarService = {
+  getAvatar: async (): Promise<Blob> => {
+    const url = `${basePath}/avatar`
+    return api.get(url, { responseType: 'blob' })
+  },
+  uploadAvatar: async (file: File): Promise<BaseVo<void>> => {
+    const url = `${basePath}/avatar`
+    const formData = new FormData()
+    formData.append('avatar', file)
+    return api.post(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+  deleteAvatar: async (): Promise<BaseVo<void>> => {
+    const url = `${basePath}/avatar`
+    return api.delete(url)
+  }
+}
