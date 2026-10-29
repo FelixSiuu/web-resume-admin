@@ -117,3 +117,32 @@ export const avatarService = {
     return api.delete(url)
   }
 }
+
+export type ProjectDto = Omit<ProjectDetail, 'sortOrder' | 'stacks' | 'createTime' | 'updateTime'> & {
+  stacks: Array<{
+    stackName: string
+    sortOrder: number
+  }>
+}
+export const projectService = {
+  getProjectList: async (): Promise<BaseVo<Project[]>> => {
+    const url = `${basePath}/projects`
+    return api.get(url)
+  },
+  getProjectDetail: async (slug: string): Promise<BaseVo<ProjectDetail>> => {
+    const url = `${basePath}/projects/${slug}`
+    return api.get(url)
+  },
+  addProject: async (postBody: ProjectDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/projects`
+    return api.post(url, postBody)
+  },
+  editProject: async (slug: string, postBody: ProjectDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/projects/${slug}`
+    return api.put(url, postBody)
+  },
+  deleteProject: async (slug: string): Promise<BaseVo<void>> => {
+    const url = `${basePath}/projects/${slug}`
+    return api.delete(url)
+  }
+}

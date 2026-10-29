@@ -88,3 +88,25 @@ declare interface Contact {
   createTime: string | null
   updateTime: string | null
 }
+
+declare interface Project {
+  slug: string
+  sortOrder: number
+  name: string
+  value: string
+  summary: string
+  stacks: string[]
+  featured: boolean
+  createTime: string
+  updateTime: string
+}
+
+declare interface ProjectDetail extends Project {
+  role?: string | null
+  duration?: string | null
+  challenge?: string | null
+  solution?: string | null
+  impact?: string | null
+  liveUrl?: string | null
+  repoUrl?: string | null
+}
