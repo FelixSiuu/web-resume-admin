@@ -121,7 +121,6 @@ export const avatarService = {
 export type ProjectDto = Omit<ProjectDetail, 'sortOrder' | 'stacks' | 'createTime' | 'updateTime'> & {
   stacks: Array<{
     stackName: string
-    sortOrder: number
   }>
 }
 export const projectService = {
