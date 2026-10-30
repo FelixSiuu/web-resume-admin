@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { Button, Card, Form, Input, InputNumber, Space, Switch, message } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
-import useProjectsHooks from '@/hooks/useProjectsHooks'
+import { useProjectDetailQuery, useProjectMutations } from '@/hooks/useProjectsHooks'
 import { ProjectDto } from '@/services/myInfo.service'
 
 type ProjectFormProps = {
@@ -41,7 +41,8 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
   const router = useRouter()
   const [form] = Form.useForm<ProjectFormValues>()
   const [messageApi, contextHolder] = message.useMessage()
-  const { detail, isLoadingDetail, addProject, editProject, confirmLoading } = useProjectsHooks(slug)
+  const { detail, isLoadingDetail } = useProjectDetailQuery(slug)
+  const { addProject, editProject, confirmLoading } = useProjectMutations()
 
   useEffect(() => {
     if (mode !== 'edit' || !detail) return
@@ -166,7 +167,7 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
                     <Form.Item {...restField} label="Sort Order" name={[name, 'sortOrder']}>
                       <InputNumber min={1} />
                     </Form.Item>
-                    <Button danger type="text" icon={<MinusCircleOutlined />} onClick={() => remove(name)} className="mt-[30px]">
+                    <Button danger type="text" icon={<MinusCircleOutlined />} onClick={() => remove(name)} className="mt-7.5">
                       Remove
                     </Button>
                   </Space>

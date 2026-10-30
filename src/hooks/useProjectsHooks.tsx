@@ -1,18 +1,13 @@
 import { ProjectDto, projectService } from '@/services/myInfo.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-const projectQueryKeys = {
+export const projectQueryKeys = {
   all: ['projects'] as const,
   list: () => [...projectQueryKeys.all, 'list'] as const,
   detail: (slug?: string) => [...projectQueryKeys.all, 'detail', slug] as const
 }
 
-export default function useProjectsHooks(slug?: string) {
-  const queryClient = useQueryClient()
-
-  /**
-   * 獲取項目列表
-   */
+export function useProjectListQuery() {
   const { data: list = [], isLoading: isLoadingList } = useQuery({
     queryKey: projectQueryKeys.list(),
     queryFn: async () => {
@@ -22,9 +17,13 @@ export default function useProjectsHooks(slug?: string) {
     }
   })
 
-  /**
-   * 獲取項目詳情
-   */
+  return {
+    list,
+    isLoadingList
+  }
+}
+
+export function useProjectDetailQuery(slug?: string) {
   const { data: detail, isLoading: isLoadingDetail } = useQuery({
     queryKey: projectQueryKeys.detail(slug),
     enabled: Boolean(slug),
@@ -36,6 +35,15 @@ export default function useProjectsHooks(slug?: string) {
       return data
     }
   })
+
+  return {
+    detail,
+    isLoadingDetail
+  }
+}
+
+export function useProjectMutations() {
+  const queryClient = useQueryClient()
 
   const { mutateAsync: addProject, isPending: isAddLoading } = useMutation({
     mutationFn: async (postBody: ProjectDto) => {
@@ -72,10 +80,7 @@ export default function useProjectsHooks(slug?: string) {
   const confirmLoading = isAddLoading || isEditLoading || isDeleteLoading
 
   return {
-    list,
-    detail,
-    isLoadingList,
-    isLoadingDetail,
+    isDeleteLoading,
     addProject,
     editProject,
     deleteProject,
