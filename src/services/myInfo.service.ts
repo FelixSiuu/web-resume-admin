@@ -123,6 +123,9 @@ export type ProjectDto = Omit<ProjectDetail, 'sortOrder' | 'stacks' | 'createTim
     stackName: string
   }>
 }
+export type ReorderProjectsDto = {
+  slugs: string[]
+}
 export const projectService = {
   getProjectList: async (): Promise<BaseVo<Project[]>> => {
     const url = `${basePath}/projects`
@@ -143,5 +146,9 @@ export const projectService = {
   deleteProject: async (slug: string): Promise<BaseVo<void>> => {
     const url = `${basePath}/projects/${slug}`
     return api.delete(url)
+  },
+  reorderProjects: async (postBody: ReorderProjectsDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/projects/reorder`
+    return api.put(url, postBody)
   }
 }

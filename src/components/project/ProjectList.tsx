@@ -15,7 +15,7 @@ export default function ProjectList() {
   const router = useRouter()
   const [messageApi, contextHolder] = message.useMessage()
   const { list, isLoadingList } = useProjectListQuery()
-  const { deleteProject, isDeleteLoading } = useProjectMutations()
+  const { deleteProject, reorderProjects, isDeleteLoading, isReorderLoading } = useProjectMutations()
   const [sortList, setSortList] = React.useState<Project[]>([])
   const [groupByFeatured, setGroupByFeatured] = React.useState(false)
   const sensors = useSensors(
@@ -54,8 +54,16 @@ export default function ProjectList() {
     setGroupByFeatured(checked)
   }
 
-  const handleSort = () => {
-    console.log(sortList.map((item) => item.slug))
+  const handleSort = async () => {
+    try {
+      await reorderProjects({
+        slugs: sortList.map((item) => item.slug)
+      })
+      setSortList([])
+      messageApi.success('Reorder success!!')
+    } catch (error) {
+      if (error instanceof Error) messageApi.error(error.message)
+    }
   }
 
   const hasOrderChanged = (): boolean => {
@@ -112,7 +120,7 @@ export default function ProjectList() {
 
         <Col>
           {hasOrderChanged() && (
-            <Button type="link" onClick={() => handleSort()}>
+            <Button type="link" onClick={() => void handleSort()} loading={isReorderLoading}>
               Save new order
             </Button>
           )}

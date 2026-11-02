@@ -1,4 +1,4 @@
-import { ProjectDto, projectService } from '@/services/myInfo.service'
+import { ProjectDto, ReorderProjectsDto, projectService } from '@/services/myInfo.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const projectQueryKeys = {
@@ -77,13 +77,25 @@ export function useProjectMutations() {
     }
   })
 
-  const confirmLoading = isAddLoading || isEditLoading || isDeleteLoading
+  const { mutateAsync: reorderProjects, isPending: isReorderLoading } = useMutation({
+    mutationFn: async (postBody: ReorderProjectsDto) => {
+      const { isSuccess, message } = await projectService.reorderProjects(postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectQueryKeys.list() })
+    }
+  })
+
+  const confirmLoading = isAddLoading || isEditLoading || isDeleteLoading || isReorderLoading
 
   return {
     isDeleteLoading,
+    isReorderLoading,
     addProject,
     editProject,
     deleteProject,
+    reorderProjects,
     confirmLoading
   }
 }
