@@ -121,8 +121,10 @@ export const avatarService = {
 export type ProjectDto = Omit<ProjectDetail, 'sortOrder' | 'stacks' | 'createTime' | 'updateTime'> & {
   stacks: Array<{
     stackName: string
-    sortOrder: number
   }>
+}
+export type ReorderProjectsDto = {
+  slugs: string[]
 }
 export const projectService = {
   getProjectList: async (): Promise<BaseVo<Project[]>> => {
@@ -144,5 +146,9 @@ export const projectService = {
   deleteProject: async (slug: string): Promise<BaseVo<void>> => {
     const url = `${basePath}/projects/${slug}`
     return api.delete(url)
+  },
+  reorderProjects: async (postBody: ReorderProjectsDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/projects/reorder`
+    return api.put(url, postBody)
   }
 }

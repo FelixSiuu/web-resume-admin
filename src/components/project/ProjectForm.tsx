@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Button, Card, Form, Input, InputNumber, Space, Switch, message } from 'antd'
+import { Button, Card, Form, Input, Space, Switch, message } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
-import useProjectsHooks from '@/hooks/useProjectsHooks'
+import { useProjectDetailQuery, useProjectMutations } from '@/hooks/useProjectsHooks'
 import { ProjectDto } from '@/services/myInfo.service'
 
 type ProjectFormProps = {
@@ -27,7 +27,6 @@ type ProjectFormValues = {
   repoUrl?: string
   stacks: Array<{
     stackName: string
-    sortOrder?: number
   }>
 }
 
@@ -41,7 +40,8 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
   const router = useRouter()
   const [form] = Form.useForm<ProjectFormValues>()
   const [messageApi, contextHolder] = message.useMessage()
-  const { detail, isLoadingDetail, addProject, editProject, confirmLoading } = useProjectsHooks(slug)
+  const { detail, isLoadingDetail } = useProjectDetailQuery(slug)
+  const { addProject, editProject, confirmLoading } = useProjectMutations()
 
   useEffect(() => {
     if (mode !== 'edit' || !detail) return
@@ -59,9 +59,8 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
       impact: detail.impact ?? '',
       liveUrl: detail.liveUrl ?? '',
       repoUrl: detail.repoUrl ?? '',
-      stacks: (detail.stacks ?? []).map((stackName, index) => ({
-        stackName,
-        sortOrder: index + 1
+      stacks: (detail.stacks ?? []).map((stackName) => ({
+        stackName
       }))
     })
   }, [detail, form, mode])
@@ -82,9 +81,8 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
       repoUrl: toNullable(values.repoUrl),
       stacks: (values.stacks || [])
         .filter((item) => item.stackName && item.stackName.trim().length > 0)
-        .map((item, index) => ({
-          stackName: item.stackName.trim(),
-          sortOrder: item.sortOrder ?? index + 1
+        .map((item) => ({
+          stackName: item.stackName.trim()
         }))
     }
 
@@ -113,7 +111,7 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
           disabled={confirmLoading}
           initialValues={{
             featured: false,
-            stacks: [{ stackName: '', sortOrder: 1 }]
+            stacks: [{ stackName: '' }]
           }}
           onFinish={handleSubmit}
         >
@@ -163,17 +161,14 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
                     <Form.Item {...restField} label="Stack Name" name={[name, 'stackName']} rules={[{ required: true, message: 'Please input stack name!' }]}>
                       <Input />
                     </Form.Item>
-                    <Form.Item {...restField} label="Sort Order" name={[name, 'sortOrder']}>
-                      <InputNumber min={1} />
-                    </Form.Item>
-                    <Button danger type="text" icon={<MinusCircleOutlined />} onClick={() => remove(name)} className="mt-[30px]">
+                    <Button danger type="text" icon={<MinusCircleOutlined />} onClick={() => remove(name)} className="mt-7.5">
                       Remove
                     </Button>
                   </Space>
                 ))}
 
                 <Form.Item>
-                  <Button type="dashed" onClick={() => add({ stackName: '', sortOrder: fields.length + 1 })} icon={<PlusOutlined />}>
+                  <Button type="dashed" onClick={() => add({ stackName: '' })} icon={<PlusOutlined />}>
                     Add stack
                   </Button>
                 </Form.Item>
