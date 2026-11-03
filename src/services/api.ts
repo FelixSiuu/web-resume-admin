@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
-import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
-import Cookies from 'js-cookie'
+import type { AxiosResponse } from 'axios'
 import { clearAuthSession } from '@/services/auth-session'
 
 declare module 'axios' {
@@ -17,6 +16,7 @@ declare module 'axios' {
 const api = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -40,22 +40,6 @@ const handleUnauthorized = () => {
   }, 0)
 }
 
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = Cookies.get('token')
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-// Response 攔截器
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data as any

@@ -3,19 +3,19 @@
 import { useState } from 'react'
 import { LoadingOutlined, LockOutlined, SafetyOutlined, UserOutlined } from '@ant-design/icons'
 import { Button, Checkbox, Flex, Form, Image, Input, message } from 'antd'
-import useUserHooks from '@/hooks/useUserHooks'
+import { useCaptchaQuery, useLoginMutation } from '@/hooks/useUserHooks'
 import { LoginDto } from '@/services/user.service'
 import RegisterForm from '@/components/registerForm'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
-import { setAuthToken } from '@/services/auth-session'
 
 const Login = () => {
   const [form] = Form.useForm()
   const router = useRouter()
   const setUser = useAuthStore((state) => state.setUser)
   const [messageApi, contextHolder] = message.useMessage()
-  const { captchaImgUrl, isFetchingCaptcha, isPendingLogin, login, refreshCaptcha } = useUserHooks()
+  const { captchaImgUrl, isFetchingCaptcha, refreshCaptcha } = useCaptchaQuery()
+  const { login, isPendingLogin } = useLoginMutation()
 
   const [open, setOpen] = useState(false)
 
@@ -35,7 +35,6 @@ const Login = () => {
 
       const data = await login(postBody)
 
-      setAuthToken(data.token, { rememberMe: values.remember })
       setUser({ username: data.username })
       messageApi.destroy()
 

@@ -1,4 +1,4 @@
-import useUserHooks from '@/hooks/useUserHooks'
+import { useRegisterMutation } from '@/hooks/useUserHooks'
 import { RegisterDto } from '@/services/user.service'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { Form, Input, Modal } from 'antd'
@@ -18,7 +18,7 @@ interface Values {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ open, onCancel, handleRegisterSuccess, handleRegisterError }) => {
   const [form] = Form.useForm()
-  const { isPendingRegister, register } = useUserHooks()
+  const { isPendingRegister, register } = useRegisterMutation()
 
   const onFinish = async (values: Values) => {
     try {

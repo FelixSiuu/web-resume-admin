@@ -68,8 +68,8 @@ npm run test
 
 ## Auth & Routing Notes
 
-- Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts`.
-- If `token` cookie is missing, access to `/overview*` redirects to `/login`.
-- API 401 responses clear auth session and redirect to `/login`.
+- Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts` (route-only; no cookie gate).
+- Auth cookie `ACCESS_TOKEN` is HttpOnly on the API origin (`SameSite=None; Secure; Path=/`). Frontend and API are cross-origin; the Next app never reads this cookie.
+- Axios uses `withCredentials: true` so browser sends `ACCESS_TOKEN` on API calls.
+- Auth enforcement: API returns 401 → clear Zustand user → redirect `/login`.
 - Successful login navigates to `/overview/aboutme`.
-- Remember me (frontend-only): checked → `token` cookie lasts 1 day (aligned with JWT 24h); unchecked → session cookie (cleared when the browser closes). Cookie uses `SameSite=Lax` and `Secure` in production.
