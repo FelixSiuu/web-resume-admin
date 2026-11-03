@@ -15,10 +15,22 @@ const createRequest = (pathname: string, token?: string): NextRequest =>
   }) as unknown as NextRequest
 
 describe('proxy', () => {
-  it('redirects "/" to "/overview"', () => {
+  it('redirects authenticated "/" to "/overview/aboutme"', () => {
+    const response = proxy(createRequest('/', 'token-value'))
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('http://localhost:3000/overview/aboutme')
+  })
+
+  it('redirects unauthenticated "/" to "/login"', () => {
     const response = proxy(createRequest('/'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe('http://localhost:3000/overview')
+    expect(response.headers.get('location')).toBe('http://localhost:3000/login')
+  })
+
+  it('redirects authenticated "/overview" to "/overview/aboutme"', () => {
+    const response = proxy(createRequest('/overview', 'token-value'))
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('http://localhost:3000/overview/aboutme')
   })
 
   it('redirects unauthenticated "/overview" to "/login"', () => {
@@ -27,7 +39,7 @@ describe('proxy', () => {
     expect(response.headers.get('location')).toBe('http://localhost:3000/login')
   })
 
-  it('allows authenticated "/overview" request', () => {
+  it('allows authenticated "/overview/aboutme" request', () => {
     const response = proxy(createRequest('/overview/aboutme', 'token-value'))
     expect(response.status).toBe(200)
   })

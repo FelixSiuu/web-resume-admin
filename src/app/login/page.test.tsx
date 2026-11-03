@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Login from './page'
 
-const { pushMock, setUserMock, loginMock, refreshCaptchaMock, cookieSetMock } = vi.hoisted(() => ({
+const { pushMock, setUserMock, loginMock, refreshCaptchaMock, setAuthTokenMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   setUserMock: vi.fn(),
   loginMock: vi.fn(),
   refreshCaptchaMock: vi.fn(),
-  cookieSetMock: vi.fn()
+  setAuthTokenMock: vi.fn()
 }))
 
 vi.mock('next/navigation', () => ({
@@ -17,10 +17,8 @@ vi.mock('next/navigation', () => ({
   })
 }))
 
-vi.mock('js-cookie', () => ({
-  default: {
-    set: cookieSetMock
-  }
+vi.mock('@/services/auth-session', () => ({
+  setAuthToken: setAuthTokenMock
 }))
 
 vi.mock('@/stores/auth.store', () => ({
@@ -52,10 +50,10 @@ describe('Login page', () => {
     setUserMock.mockClear()
     loginMock.mockClear()
     refreshCaptchaMock.mockClear()
-    cookieSetMock.mockClear()
+    setAuthTokenMock.mockClear()
   })
 
-  it('submits login successfully and navigates to overview', async () => {
+  it('submits login with remember me and navigates to aboutme', async () => {
     loginMock.mockResolvedValueOnce({
       token: 'mock-token',
       username: 'felix'
@@ -77,9 +75,29 @@ describe('Login page', () => {
       })
     })
 
-    expect(cookieSetMock).toHaveBeenCalledWith('token', 'mock-token', { expires: 2 })
+    expect(setAuthTokenMock).toHaveBeenCalledWith('mock-token', { rememberMe: true })
     expect(setUserMock).toHaveBeenCalledWith({ username: 'felix' })
-    expect(pushMock).toHaveBeenCalledWith('/overview')
+    expect(pushMock).toHaveBeenCalledWith('/overview/aboutme')
+  })
+
+  it('stores a session token when remember me is unchecked', async () => {
+    loginMock.mockResolvedValueOnce({
+      token: 'mock-token',
+      username: 'felix'
+    })
+
+    const user = userEvent.setup()
+    render(<Login />)
+
+    await user.type(screen.getByPlaceholderText('Username'), 'felix')
+    await user.type(screen.getByPlaceholderText('Password'), '123456')
+    await user.type(screen.getByPlaceholderText('Captcha'), 'abcd')
+    await user.click(screen.getByRole('checkbox', { name: /remember me/i }))
+    await user.click(screen.getByRole('button', { name: /log in/i }))
+
+    await waitFor(() => {
+      expect(setAuthTokenMock).toHaveBeenCalledWith('mock-token', { rememberMe: false })
+    })
   })
 
   it('refreshes captcha and clears captcha input on failed login', async () => {
@@ -97,7 +115,7 @@ describe('Login page', () => {
       expect(refreshCaptchaMock).toHaveBeenCalledTimes(1)
     })
 
-    expect(cookieSetMock).not.toHaveBeenCalled()
+    expect(setAuthTokenMock).not.toHaveBeenCalled()
     expect(pushMock).not.toHaveBeenCalled()
     expect(screen.getByPlaceholderText('Captcha')).toHaveValue('')
   })

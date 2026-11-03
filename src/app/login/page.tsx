@@ -5,10 +5,10 @@ import { LoadingOutlined, LockOutlined, SafetyOutlined, UserOutlined } from '@an
 import { Button, Checkbox, Flex, Form, Image, Input, message } from 'antd'
 import useUserHooks from '@/hooks/useUserHooks'
 import { LoginDto } from '@/services/user.service'
-import Cookies from 'js-cookie'
 import RegisterForm from '@/components/registerForm'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
+import { setAuthToken } from '@/services/auth-session'
 
 const Login = () => {
   const [form] = Form.useForm()
@@ -35,11 +35,11 @@ const Login = () => {
 
       const data = await login(postBody)
 
-      Cookies.set('token', data.token, { expires: 2 })
+      setAuthToken(data.token, { rememberMe: values.remember })
       setUser({ username: data.username })
       messageApi.destroy()
 
-      router.push('/overview')
+      router.push('/overview/aboutme')
     } catch (error) {
       messageApi.destroy()
       if (error instanceof Error) {
