@@ -23,5 +23,9 @@ export const userService = {
   getCaptcha: async (): Promise<BaseVo<string>> => {
     const url = '/getCaptcha'
     return api.get(url)
+  },
+  logout: async (): Promise<BaseVo<void>> => {
+    const url = '/logout'
+    return api.post(url)
   }
 }

@@ -24,14 +24,14 @@ vi.mock('@/stores/auth.store', () => ({
 }))
 
 vi.mock('@/hooks/useUserHooks', () => ({
-  default: () => ({
+  useCaptchaQuery: () => ({
     captchaImgUrl: '/captcha.png',
     isFetchingCaptcha: false,
-    isPendingLogin: false,
-    isPendingRegister: false,
-    login: loginMock,
-    register: vi.fn(),
     refreshCaptcha: refreshCaptchaMock
+  }),
+  useLoginMutation: () => ({
+    login: loginMock,
+    isPendingLogin: false
   })
 }))
 
