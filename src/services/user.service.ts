@@ -14,14 +14,14 @@ export interface RegisterDto {
 export const userService = {
   login: async (postBody: LoginDto): Promise<BaseVo<LoginVo>> => {
     const url = '/login'
-    return api.post(url, postBody, { withCredentials: true })
+    return api.post(url, postBody)
   },
   register: async (postBody: RegisterDto): Promise<BaseVo<void>> => {
     const url = '/register'
-    return api.post(url, postBody, { withCredentials: true })
+    return api.post(url, postBody)
   },
   getCaptcha: async (): Promise<BaseVo<string>> => {
     const url = '/getCaptcha'
-    return api.get(url, { withCredentials: true })
+    return api.get(url)
   }
 }

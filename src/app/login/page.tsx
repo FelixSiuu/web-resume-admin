@@ -8,7 +8,6 @@ import { LoginDto } from '@/services/user.service'
 import RegisterForm from '@/components/registerForm'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
-import { setAuthToken } from '@/services/auth-session'
 
 const Login = () => {
   const [form] = Form.useForm()
@@ -35,7 +34,6 @@ const Login = () => {
 
       const data = await login(postBody)
 
-      setAuthToken(data.token, { rememberMe: values.remember })
       setUser({ username: data.username })
       messageApi.destroy()
 
