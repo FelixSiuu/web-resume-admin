@@ -68,6 +68,8 @@ npm run test
 
 ## Auth & Routing Notes
 
-- Root path `/` redirects to `/overview` via `src/proxy.ts`.
+- Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts`.
 - If `token` cookie is missing, access to `/overview*` redirects to `/login`.
 - API 401 responses clear auth session and redirect to `/login`.
+- Successful login navigates to `/overview/aboutme`.
+- Remember me (frontend-only): checked → `token` cookie lasts 1 day (aligned with JWT 24h); unchecked → session cookie (cleared when the browser closes). Cookie uses `SameSite=Lax` and `Secure` in production.
