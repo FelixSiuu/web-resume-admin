@@ -63,6 +63,8 @@ declare interface Education {
 
 declare interface LoginVo {
   username: string
+  /** Same value as API-domain XSRF_TOKEN cookie; returned because cross-origin JS cannot read that cookie. */
+  xsrfToken: string
 }
 
 declare type SocialLinkPlatform = 'github' | 'linkedin'

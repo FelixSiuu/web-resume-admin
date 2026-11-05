@@ -13,6 +13,7 @@ const Login = () => {
   const [form] = Form.useForm()
   const router = useRouter()
   const setUser = useAuthStore((state) => state.setUser)
+  const setXsrfToken = useAuthStore((state) => state.setXsrfToken)
   const [messageApi, contextHolder] = message.useMessage()
   const { captchaImgUrl, isFetchingCaptcha, refreshCaptcha } = useCaptchaQuery()
   const { login, isPendingLogin } = useLoginMutation()
@@ -36,6 +37,7 @@ const Login = () => {
       const data = await login(postBody)
 
       setUser({ username: data.username })
+      setXsrfToken(data.xsrfToken)
       messageApi.destroy()
 
       router.push('/overview/aboutme')

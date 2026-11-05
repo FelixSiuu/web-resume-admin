@@ -2,6 +2,7 @@
 import axios from 'axios'
 import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { clearAuthSession } from '@/services/auth-session'
+import { useAuthStore } from '@/stores/auth.store'
 import { getCookie } from '@/utils/cookie'
 
 declare module 'axios' {
@@ -45,13 +46,18 @@ const handleUnauthorized = () => {
   }, 0)
 }
 
+const resolveXsrfToken = () => {
+  // Prefer LoginVo value (works cross-origin). Cookie fallback helps same-site / localhost.
+  return useAuthStore.getState().xsrfToken ?? getCookie(CSRF_COOKIE_NAME)
+}
+
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const method = config.method?.toUpperCase()
   if (!method || !CSRF_METHODS.has(method)) {
     return config
   }
 
-  const xsrfToken = getCookie(CSRF_COOKIE_NAME)
+  const xsrfToken = resolveXsrfToken()
   if (xsrfToken) {
     config.headers.set(CSRF_HEADER_NAME, xsrfToken)
   }

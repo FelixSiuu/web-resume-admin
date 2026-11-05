@@ -71,6 +71,6 @@ npm run test
 - Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts` (route-only; no cookie gate).
 - Auth cookie `ACCESS_TOKEN` is HttpOnly on the API origin (`SameSite=None; Secure; Path=/`). Frontend and API are cross-origin; the Next app never reads this cookie.
 - Axios uses `withCredentials: true` so browser sends `ACCESS_TOKEN` on API calls.
-- CSRF (double-submit): non-HttpOnly `XSRF_TOKEN` cookie is read by the frontend; POST/PUT/DELETE requests send header `Xsrf-Token` with that value. The cookie must be readable on the frontend origin (`document.cookie`).
-- Auth enforcement: API 401 (auth) or 403 (CSRF/permission) → clear Zustand user → redirect `/login`.
+- CSRF (double-submit): API still sets `XSRF_TOKEN` cookie (browser sends it with credentials). Because cross-origin JS cannot read that cookie, `LoginVo.xsrfToken` is stored in Zustand (persisted) and sent as header `Xsrf-Token` on POST/PUT/DELETE. Cookie `document.cookie` is only a same-site / localhost fallback.
+- Auth enforcement: API 401 (auth) or 403 (CSRF/permission) → clear Zustand user + xsrfToken → redirect `/login`.
 - Successful login navigates to `/overview/aboutme`.
