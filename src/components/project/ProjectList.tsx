@@ -111,21 +111,25 @@ export default function ProjectList() {
   return (
     <>
       {contextHolder}
-      <Spin spinning={isLoadingList} fullscreen />
+      
+      {isLoadingList && <Spin spinning={true} />}
 
-      <Row className="mb-4">
-        <Col flex="auto">
-          <Switch checked={groupByFeatured} onChange={onChange} /> group by featured {groupByFeatured ? 'On' : 'Off'}
-        </Col>
+      {
+        showList.length > 0  && 
+        <Row className="mb-4">
+          <Col flex="auto">
+            <Switch checked={groupByFeatured} onChange={onChange} /> group by featured {groupByFeatured ? 'On' : 'Off'}
+          </Col>
 
-        <Col>
-          {hasOrderChanged() && (
-            <Button type="link" onClick={() => void handleSort()} loading={isReorderLoading}>
-              Save new order
-            </Button>
-          )}
-        </Col>
-      </Row>
+          <Col>
+            {hasOrderChanged() && (
+              <Button type="link" onClick={() => void handleSort()} loading={isReorderLoading}>
+                Save new order
+              </Button>
+            )}
+          </Col>
+        </Row>
+      }
 
       <DndContext id="listy-drag-sorting" sensors={sensors} modifiers={[restrictToVerticalAxis]} onDragEnd={onDragEnd}>
         <SortableContext items={showList.map((item) => item.sortOrder)} strategy={verticalListSortingStrategy}>
