@@ -115,8 +115,18 @@ export default function ProjectForm({ mode, slug }: ProjectFormProps) {
           }}
           onFinish={handleSubmit}
         >
-          <Form.Item label="Slug" name="slug" rules={[{ required: true, message: 'Please input slug!' }]}>
-            <Input />
+          <Form.Item
+            label="Slug"
+            name="slug"
+            rules={[
+              { required: true, message: 'Please input slug!' },
+              {
+                pattern: /^[a-zA-Z0-9_-]+$/,
+                message: 'Slug can only contain letters, numbers, underscores, or hyphens'
+              }
+            ]}
+          >
+            <Input placeholder="e.g. my-project_1" />
           </Form.Item>
           <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please input name!' }]}>
             <Input />

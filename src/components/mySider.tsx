@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined, FilePdfOutlined, ContactsOutlined, ProjectOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
@@ -35,21 +35,27 @@ const MenuItems = [
     label: 'Contact'
   },
   {
-    key: '/overview/export-pdf',
-    icon: <FilePdfOutlined />,
-    label: 'Export PDF'
-  },
-  {
     key: '/overview/projects',
     icon: <ProjectOutlined />,
     label: 'Projects'
+  },
+  {
+    key: '/overview/export-pdf',
+    icon: <FilePdfOutlined />,
+    label: 'Export PDF'
   }
 ]
+
+const resolveSelectedKey = (pathname: string) => {
+  const match = MenuItems.find((item) => pathname === item.key || pathname.startsWith(`${item.key}/`))
+  return match?.key ?? pathname
+}
 
 export default function MySider() {
   const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const selectedKey = useMemo(() => resolveSelectedKey(pathname), [pathname])
 
   const onClick: MenuProps['onClick'] = (e) => {
     router.push(e.key)
@@ -57,7 +63,7 @@ export default function MySider() {
 
   return (
     <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-      <Menu theme="dark" mode="inline" items={MenuItems} selectedKeys={[pathname]} onClick={onClick} />
+      <Menu theme="dark" mode="inline" items={MenuItems} selectedKeys={[selectedKey]} onClick={onClick} />
     </Sider>
   )
 }

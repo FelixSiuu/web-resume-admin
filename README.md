@@ -1,6 +1,6 @@
 # Felix Siu Admin System
 
-Admin system for managing resume content, including About Me, Core Skills, Working Experience, Education, Contact, and PDF export.
+Admin system for managing resume content, including About Me, Core Skills, Working Experience, Education, Contact, Projects, and PDF export.
 
 ## Tech Stack
 
@@ -64,6 +64,9 @@ npm run test
 - `/overview/workingexperience`
 - `/overview/education`
 - `/overview/contact`
+- `/overview/projects`: project list (drag reorder; grouping disables reorder)
+- `/overview/projects/new`: create project
+- `/overview/projects/[slug]`: edit project (slug is editable)
 - `/overview/export-pdf`
 
 ## Auth & Routing Notes
