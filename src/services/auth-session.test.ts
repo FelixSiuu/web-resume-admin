@@ -19,8 +19,9 @@ describe('clearAuthSession', () => {
     clearUserMock.mockClear()
   })
 
-  it('clears auth user only (HttpOnly cookie is backend-owned)', () => {
+  it('clears auth user and persisted xsrf token (HttpOnly ACCESS_TOKEN is backend-owned)', () => {
     clearAuthSession()
     expect(clearUserMock).toHaveBeenCalledTimes(1)
   })
 })
+
