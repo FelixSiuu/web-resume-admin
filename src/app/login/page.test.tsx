@@ -3,9 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Login from './page'
 
-const { pushMock, setUserMock, loginMock, refreshCaptchaMock } = vi.hoisted(() => ({
+const { pushMock, setUserMock, setXsrfTokenMock, loginMock, refreshCaptchaMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   setUserMock: vi.fn(),
+  setXsrfTokenMock: vi.fn(),
   loginMock: vi.fn(),
   refreshCaptchaMock: vi.fn()
 }))
@@ -17,9 +18,12 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('@/stores/auth.store', () => ({
-  useAuthStore: (selector: (state: { setUser: typeof setUserMock }) => unknown) =>
+  useAuthStore: (
+    selector: (state: { setUser: typeof setUserMock; setXsrfToken: typeof setXsrfTokenMock }) => unknown
+  ) =>
     selector({
-      setUser: setUserMock
+      setUser: setUserMock,
+      setXsrfToken: setXsrfTokenMock
     })
 }))
 
@@ -43,13 +47,15 @@ describe('Login page', () => {
   beforeEach(() => {
     pushMock.mockClear()
     setUserMock.mockClear()
+    setXsrfTokenMock.mockClear()
     loginMock.mockClear()
     refreshCaptchaMock.mockClear()
   })
 
-  it('submits login successfully and navigates to aboutme', async () => {
+  it('submits login successfully and stores xsrf token', async () => {
     loginMock.mockResolvedValueOnce({
-      username: 'felix'
+      username: 'felix',
+      xsrfToken: 'csrf-from-login'
     })
 
     const user = userEvent.setup()
@@ -69,6 +75,7 @@ describe('Login page', () => {
     })
 
     expect(setUserMock).toHaveBeenCalledWith({ username: 'felix' })
+    expect(setXsrfTokenMock).toHaveBeenCalledWith('csrf-from-login')
     expect(pushMock).toHaveBeenCalledWith('/overview/aboutme')
   })
 
@@ -88,6 +95,7 @@ describe('Login page', () => {
     })
 
     expect(pushMock).not.toHaveBeenCalled()
+    expect(setXsrfTokenMock).not.toHaveBeenCalled()
     expect(screen.getByPlaceholderText('Captcha')).toHaveValue('')
   })
 })
