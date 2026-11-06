@@ -4,6 +4,7 @@ export interface LoginDto {
   username: string
   password: string
   captcha: string
+  rememberMe: boolean
 }
 
 export interface RegisterDto {
