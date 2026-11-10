@@ -75,5 +75,5 @@ npm run test
 - Auth cookie `ACCESS_TOKEN` is HttpOnly on the API origin (`SameSite=None; Secure; Path=/`). Frontend and API are cross-origin; the Next app never reads this cookie.
 - Axios uses `withCredentials: true` so browser sends `ACCESS_TOKEN` on API calls.
 - CSRF (double-submit): API still sets `XSRF_TOKEN` cookie (browser sends it with credentials). Because cross-origin JS cannot read that cookie, `LoginVo.xsrfToken` is stored in Zustand (persisted) and sent as header `Xsrf-Token` on POST/PUT/DELETE. Cookie `document.cookie` is only a same-site / localhost fallback.
-- Auth enforcement: API 401 (auth) or 403 (CSRF/permission) → clear Zustand user + xsrfToken → redirect `/login`.
+- Auth enforcement: business API 401 → `POST /auth/refresh` once (shared in-flight promise), update Zustand `xsrfToken`/`username`, retry original request. Refresh / auth-route 401 or 403 → clear Zustand user + xsrfToken → redirect `/login`.
 - Successful login navigates to `/overview/aboutme`.

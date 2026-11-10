@@ -70,13 +70,39 @@ describe('Login page', () => {
       expect(loginMock).toHaveBeenCalledWith({
         username: 'felix',
         password: '123456',
-        captcha: 'abcd'
+        captcha: 'abcd',
+        rememberMe: true
       })
     })
 
     expect(setUserMock).toHaveBeenCalledWith({ username: 'felix' })
     expect(setXsrfTokenMock).toHaveBeenCalledWith('csrf-from-login')
     expect(pushMock).toHaveBeenCalledWith('/overview/aboutme')
+  })
+
+  it('submits rememberMe as false when Remember me is unchecked', async () => {
+    loginMock.mockResolvedValueOnce({
+      username: 'felix',
+      xsrfToken: 'csrf-from-login'
+    })
+
+    const user = userEvent.setup()
+    render(<Login />)
+
+    await user.type(screen.getByPlaceholderText('Username'), 'felix')
+    await user.type(screen.getByPlaceholderText('Password'), '123456')
+    await user.type(screen.getByPlaceholderText('Captcha'), 'abcd')
+    await user.click(screen.getByRole('checkbox', { name: /remember me/i }))
+    await user.click(screen.getByRole('button', { name: /log in/i }))
+
+    await waitFor(() => {
+      expect(loginMock).toHaveBeenCalledWith({
+        username: 'felix',
+        password: '123456',
+        captcha: 'abcd',
+        rememberMe: false
+      })
+    })
   })
 
   it('refreshes captcha and clears captcha input on failed login', async () => {

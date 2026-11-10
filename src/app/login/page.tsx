@@ -31,7 +31,8 @@ const Login = () => {
       const postBody: LoginDto = {
         username: values.username,
         password: values.password,
-        captcha: values.captcha
+        captcha: values.captcha,
+        rememberMe: values.rememberMe
       }
 
       const data = await login(postBody)
@@ -71,7 +72,7 @@ const Login = () => {
       {contextHolder}
 
       <div className="w-full max-w-120 p-4">
-        <Form form={form} name="login" initialValues={{ remember: true }} size="large" onFinish={onFinish} disabled={isPendingLogin} clearOnDestroy>
+        <Form form={form} name="login" initialValues={{ rememberMe: true }} size="large" onFinish={onFinish} disabled={isPendingLogin} clearOnDestroy>
           <Form.Item name="username" rules={[{ required: true, message: 'Please input your Username!' }]}>
             <Input prefix={<UserOutlined />} placeholder="Username" allowClear />
           </Form.Item>
@@ -96,7 +97,7 @@ const Login = () => {
 
           <Form.Item>
             <Flex justify="space-between" align="center">
-              <Form.Item name="remember" valuePropName="checked" noStyle>
+              <Form.Item name="rememberMe" valuePropName="checked" noStyle>
                 <Checkbox>Remember me</Checkbox>
               </Form.Item>
               {/* <a href="">Forgot password</a> */}
