@@ -87,7 +87,7 @@ const Login = () => {
 
           <Form.Item>
             <Flex justify="space-between" align="center">
-              <Image src={captchaImgUrl} width={150} height={40} alt="captcha" placeholder={<LoadingOutlined />} />
+              <Image src={captchaImgUrl} width={160} height={40} alt="captcha" placeholder={<LoadingOutlined />} />
 
               <Button htmlType="button" onClick={refreshCaptcha} disabled={isFetchingCaptcha}>
                 refresh captcha
