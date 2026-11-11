@@ -36,9 +36,11 @@ describe('MyHeader', () => {
     logoutMock.mockClear()
   })
 
-  it('shows current username', () => {
+  it('shows current username linking to account', () => {
     render(<MyHeader />)
-    expect(screen.getByText('Hi, felix')).toBeInTheDocument()
+    const accountLink = screen.getByRole('link', { name: 'Hi, felix' })
+    expect(accountLink).toBeInTheDocument()
+    expect(accountLink).toHaveAttribute('href', '/overview/account')
   })
 
   it('calls logout API then clears session and navigates to login', async () => {
