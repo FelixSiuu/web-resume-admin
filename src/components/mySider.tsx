@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined, FilePdfOutlined, ContactsOutlined, ProjectOutlined } from '@ant-design/icons'
+import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined, FilePdfOutlined, ContactsOutlined, ProjectOutlined, SettingOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { usePathname, useRouter } from 'next/navigation'
@@ -43,6 +43,11 @@ const MenuItems = [
     key: '/overview/export-pdf',
     icon: <FilePdfOutlined />,
     label: 'Export PDF'
+  },
+  {
+    key: '/overview/account',
+    icon: <SettingOutlined />,
+    label: 'Account'
   }
 ]
 

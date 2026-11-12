@@ -59,8 +59,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ open, onCancel, handleRegis
         <Input prefix={<UserOutlined />} placeholder="Username" allowClear />
       </Form.Item>
 
-      <Form.Item name="password" rules={[{ required: true, message: 'Please input your Password!' }]}>
-        <Input.Password prefix={<LockOutlined />} type="password" placeholder="Password" allowClear />
+      <Form.Item
+        name="password"
+        rules={[
+          { required: true, message: 'Please input your Password!' },
+          {
+            pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$/,
+            message: 'Password must be 8-20 characters and include letters and numbers'
+          }
+        ]}
+      >
+        <Input.Password prefix={<LockOutlined />} type="password" placeholder="8-20 chars, letters and numbers" allowClear />
       </Form.Item>
     </Modal>
   )

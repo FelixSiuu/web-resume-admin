@@ -38,7 +38,7 @@ const api = axios.create({
 let isHandlingUnauthorized = false
 let refreshPromise: Promise<void> | null = null
 
-const handleUnauthorized = () => {
+export const handleUnauthorized = () => {
   if (isHandlingUnauthorized) return
 
   isHandlingUnauthorized = true
