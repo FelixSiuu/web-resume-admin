@@ -3,17 +3,24 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Login from './page'
 
-const { pushMock, setUserMock, setXsrfTokenMock, loginMock, refreshCaptchaMock } = vi.hoisted(() => ({
+const { pushMock, setUserMock, setXsrfTokenMock, loginMock, refreshCaptchaMock, clearQueryClientMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   setUserMock: vi.fn(),
   setXsrfTokenMock: vi.fn(),
   loginMock: vi.fn(),
-  refreshCaptchaMock: vi.fn()
+  refreshCaptchaMock: vi.fn(),
+  clearQueryClientMock: vi.fn()
 }))
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: pushMock
+  })
+}))
+
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    clear: clearQueryClientMock
   })
 }))
 
@@ -50,6 +57,7 @@ describe('Login page', () => {
     setXsrfTokenMock.mockClear()
     loginMock.mockClear()
     refreshCaptchaMock.mockClear()
+    clearQueryClientMock.mockClear()
   })
 
   it('submits login successfully and stores xsrf token', async () => {
@@ -75,6 +83,7 @@ describe('Login page', () => {
       })
     })
 
+    expect(clearQueryClientMock).toHaveBeenCalledTimes(1)
     expect(setUserMock).toHaveBeenCalledWith({ username: 'felix' })
     expect(setXsrfTokenMock).toHaveBeenCalledWith('csrf-from-login')
     expect(pushMock).toHaveBeenCalledWith('/overview/aboutme')

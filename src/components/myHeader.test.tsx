@@ -6,10 +6,17 @@ import MyHeader from './myHeader'
 const pushMock = vi.fn()
 const clearAuthSessionMock = vi.fn()
 const logoutMock = vi.fn()
+const clearQueryClientMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: pushMock
+  })
+}))
+
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    clear: clearQueryClientMock
   })
 }))
 
@@ -34,6 +41,7 @@ describe('MyHeader', () => {
     pushMock.mockClear()
     clearAuthSessionMock.mockClear()
     logoutMock.mockClear()
+    clearQueryClientMock.mockClear()
   })
 
   it('shows current username linking to account', () => {
@@ -52,6 +60,7 @@ describe('MyHeader', () => {
 
     await waitFor(() => {
       expect(logoutMock).toHaveBeenCalledTimes(1)
+      expect(clearQueryClientMock).toHaveBeenCalledTimes(1)
       expect(clearAuthSessionMock).toHaveBeenCalledTimes(1)
       expect(pushMock).toHaveBeenCalledWith('/login')
     })
@@ -66,6 +75,7 @@ describe('MyHeader', () => {
 
     await waitFor(() => {
       expect(logoutMock).toHaveBeenCalledTimes(1)
+      expect(clearQueryClientMock).toHaveBeenCalledTimes(1)
       expect(clearAuthSessionMock).toHaveBeenCalledTimes(1)
       expect(pushMock).toHaveBeenCalledWith('/login')
     })

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { LoadingOutlined, LockOutlined, SafetyOutlined, UserOutlined } from '@ant-design/icons'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button, Checkbox, Flex, Form, Image, Input, message } from 'antd'
 import { useCaptchaQuery, useLoginMutation } from '@/hooks/useUserHooks'
 import { LoginDto } from '@/services/user.service'
@@ -12,6 +13,7 @@ import { useAuthStore } from '@/stores/auth.store'
 const Login = () => {
   const [form] = Form.useForm()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const setUser = useAuthStore((state) => state.setUser)
   const setXsrfToken = useAuthStore((state) => state.setXsrfToken)
   const [messageApi, contextHolder] = message.useMessage()
@@ -37,6 +39,7 @@ const Login = () => {
 
       const data = await login(postBody)
 
+      queryClient.clear()
       setUser({ username: data.username })
       setXsrfToken(data.xsrfToken)
       messageApi.destroy()
