@@ -2,9 +2,7 @@
 
 import { LockOutlined } from '@ant-design/icons'
 import { Button, Card, Divider, Form, Input, Modal, Typography, message } from 'antd'
-import { useRouter } from 'next/navigation'
-import { useChangePasswordMutation, useDeleteAccountMutation } from '@/hooks/useUserHooks'
-import { clearAuthSession } from '@/services/auth-session'
+import { useChangePasswordMutation, useDeleteAccountMutation } from '@/hooks/useAccountHooks'
 import { useAuthStore } from '@/stores/auth.store'
 
 const { Text, Title } = Typography
@@ -17,7 +15,6 @@ type ChangePasswordFormValues = {
 
 const AccountCard = () => {
   const [form] = Form.useForm<ChangePasswordFormValues>()
-  const router = useRouter()
   const { user } = useAuthStore()
   const [messageApi, contextHolder] = message.useMessage()
   const { changePassword, isPendingChangePassword } = useChangePasswordMutation()
@@ -29,8 +26,6 @@ const AccountCard = () => {
         oldPassword: values.oldPassword,
         newPassword: values.newPassword
       })
-      messageApi.success('Password updated')
-      form.resetFields()
     } catch (error) {
       const errorText = error instanceof Error ? error.message : 'Failed to update password'
       messageApi.error(errorText)
@@ -47,8 +42,6 @@ const AccountCard = () => {
       onOk: async () => {
         try {
           await deleteAccount()
-          clearAuthSession()
-          router.push('/login')
         } catch (error) {
           const errorText = error instanceof Error ? error.message : 'Failed to delete account'
           messageApi.error(errorText)
@@ -82,8 +75,18 @@ const AccountCard = () => {
             <Input.Password prefix={<LockOutlined />} placeholder="Current password" allowClear />
           </Form.Item>
 
-          <Form.Item name="newPassword" label="New password" rules={[{ required: true, message: 'Please input your new password!' }]}>
-            <Input.Password prefix={<LockOutlined />} placeholder="New password" allowClear />
+          <Form.Item
+            name="newPassword"
+            label="New password"
+            rules={[
+              { required: true, message: 'Please input your new password!' },
+              {
+                pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$/,
+                message: 'Password must be 8-20 characters and include letters and numbers'
+              }
+            ]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="8-20 chars, letters and numbers" allowClear />
           </Form.Item>
 
           <Form.Item

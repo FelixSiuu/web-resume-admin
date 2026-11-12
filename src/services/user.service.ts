@@ -12,11 +12,6 @@ export interface RegisterDto {
   password: string
 }
 
-export interface ChangePasswordDto {
-  oldPassword: string
-  newPassword: string
-}
-
 const basePath = '/auth'
 
 export const userService = {
@@ -39,13 +34,5 @@ export const userService = {
   refresh: async (): Promise<BaseVo<LoginVo>> => {
     const url = `${basePath}/refresh`
     return api.post(url)
-  },
-  changePassword: async (postBody: ChangePasswordDto): Promise<BaseVo<void>> => {
-    const url = `${basePath}/change-password`
-    return api.post(url, postBody)
-  },
-  deleteAccount: async (): Promise<BaseVo<void>> => {
-    const url = `${basePath}/account`
-    return api.delete(url)
   }
 }

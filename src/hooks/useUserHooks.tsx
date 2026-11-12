@@ -1,4 +1,4 @@
-import { ChangePasswordDto, LoginDto, RegisterDto, userService } from '@/services/user.service'
+import { LoginDto, RegisterDto, userService } from '@/services/user.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const userQueryKeys = {
@@ -55,33 +55,5 @@ export function useRegisterMutation() {
   return {
     register,
     isPendingRegister
-  }
-}
-
-export function useChangePasswordMutation() {
-  const { mutateAsync: changePassword, isPending: isPendingChangePassword } = useMutation({
-    mutationFn: async (postBody: ChangePasswordDto) => {
-      const { isSuccess, message } = await userService.changePassword(postBody)
-      if (!isSuccess) throw new Error(message)
-    }
-  })
-
-  return {
-    changePassword,
-    isPendingChangePassword
-  }
-}
-
-export function useDeleteAccountMutation() {
-  const { mutateAsync: deleteAccount, isPending: isPendingDeleteAccount } = useMutation({
-    mutationFn: async () => {
-      const { isSuccess, message } = await userService.deleteAccount()
-      if (!isSuccess) throw new Error(message)
-    }
-  })
-
-  return {
-    deleteAccount,
-    isPendingDeleteAccount
   }
 }
