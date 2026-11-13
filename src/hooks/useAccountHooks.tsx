@@ -1,4 +1,4 @@
-import { ChangePasswordDto, accountService } from '@/services/account.service'
+import { BindEmailDto, BoundEmailVo, ChangePasswordDto, accountService } from '@/services/account.service'
 import { handleUnauthorized } from '@/services/api'
 import { useMutation } from '@tanstack/react-query'
 
@@ -29,5 +29,20 @@ export function useDeleteAccountMutation() {
   return {
     deleteAccount,
     isPendingDeleteAccount
+  }
+}
+
+export function useBindEmailMutation() {
+  const { mutateAsync: bindEmail, isPending: isPendingBindEmail } = useMutation({
+    mutationFn: async (postBody: BindEmailDto): Promise<BoundEmailVo> => {
+      const { isSuccess, message, data } = await accountService.bindEmail(postBody)
+      if (!isSuccess || !data) throw new Error(message)
+      return data
+    }
+  })
+
+  return {
+    bindEmail,
+    isPendingBindEmail
   }
 }
