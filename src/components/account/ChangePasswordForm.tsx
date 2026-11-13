@@ -1,10 +1,12 @@
 'use client'
 
 import { LockOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Typography, type MessageInstance } from 'antd'
+import { Button, Form, Input, Typography, message } from 'antd'
 import { useChangePasswordMutation } from '@/hooks/useAccountHooks'
 
 const { Title } = Typography
+
+type MessageApi = ReturnType<typeof message.useMessage>[0]
 
 type ChangePasswordFormValues = {
   oldPassword: string
@@ -13,7 +15,7 @@ type ChangePasswordFormValues = {
 }
 
 type ChangePasswordFormProps = {
-  messageApi: MessageInstance
+  messageApi: MessageApi
 }
 
 const ChangePasswordForm = ({ messageApi }: ChangePasswordFormProps) => {

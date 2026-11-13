@@ -2,18 +2,20 @@
 
 import { useState } from 'react'
 import { MailOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Tag, Typography, type MessageInstance } from 'antd'
+import { Button, Form, Input, Tag, Typography, message } from 'antd'
 import { useBindEmailMutation } from '@/hooks/useAccountHooks'
 import type { BoundEmailVo } from '@/services/account.service'
 
 const { Text, Title } = Typography
+
+type MessageApi = ReturnType<typeof message.useMessage>[0]
 
 type BindEmailFormValues = {
   email: string
 }
 
 type BindEmailFormProps = {
-  messageApi: MessageInstance
+  messageApi: MessageApi
 }
 
 const BindEmailForm = ({ messageApi }: BindEmailFormProps) => {

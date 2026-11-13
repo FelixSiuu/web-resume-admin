@@ -1,12 +1,14 @@
 'use client'
 
-import { Button, Modal, Typography, type MessageInstance } from 'antd'
+import { Button, Modal, Typography, message } from 'antd'
 import { useDeleteAccountMutation } from '@/hooks/useAccountHooks'
 
 const { Text, Title } = Typography
 
+type MessageApi = ReturnType<typeof message.useMessage>[0]
+
 type DeleteAccountSectionProps = {
-  messageApi: MessageInstance
+  messageApi: MessageApi
 }
 
 const DeleteAccountSection = ({ messageApi }: DeleteAccountSectionProps) => {
