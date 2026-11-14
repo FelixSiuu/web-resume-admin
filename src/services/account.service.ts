@@ -5,13 +5,14 @@ export interface ChangePasswordDto {
   newPassword: string
 }
 
-export interface BindEmailDto {
+export interface EmailDto {
   email: string
 }
 
-export interface BoundEmailVo {
+export interface EmailVo {
   email: string
   verified: boolean
+  nextStepMessage?: string
 }
 
 const basePath = '/account'
@@ -24,16 +25,12 @@ export const accountService = {
   deleteAccount: async (): Promise<BaseVo<void>> => {
     return api.delete(basePath)
   },
-  // TODO: replace stub with real POST /account/bind-email when backend is ready
-  bindEmail: async (postBody: BindEmailDto): Promise<BaseVo<BoundEmailVo>> => {
-    return {
-      isSuccess: true,
-      code: 'OK',
-      message: 'OK',
-      data: {
-        email: postBody.email,
-        verified: false
-      }
-    }
+  getEmail: async (): Promise<BaseVo<EmailVo>> => {
+    const url = `${basePath}/email`
+    return api.get(url)
+  },
+  updateEmail: async (postBody: EmailDto): Promise<BaseVo<EmailVo>> => {
+    const url = `${basePath}/update-email`
+    return api.put(url, postBody)
   }
 }
