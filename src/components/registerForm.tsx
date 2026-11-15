@@ -1,6 +1,6 @@
 import { useRegisterMutation } from '@/hooks/useUserHooks'
 import { RegisterDto } from '@/services/user.service'
-import { LockOutlined, UserOutlined } from '@ant-design/icons'
+import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons'
 import { Form, Input, Modal } from 'antd'
 import React from 'react'
 
@@ -14,6 +14,7 @@ interface RegisterFormProps {
 interface Values {
   username: string
   password: string
+  email: string
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ open, onCancel, handleRegisterSuccess, handleRegisterError }) => {
@@ -24,7 +25,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ open, onCancel, handleRegis
     try {
       const postBody: RegisterDto = {
         username: values.username,
-        password: values.password
+        password: values.password,
+        email: values.email.trim()
       }
 
       await register(postBody)
@@ -57,6 +59,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ open, onCancel, handleRegis
     >
       <Form.Item name="username" rules={[{ required: true, message: 'Please input your Username!' }]}>
         <Input prefix={<UserOutlined />} placeholder="Username" allowClear />
+      </Form.Item>
+
+      <Form.Item
+        name="email"
+        rules={[
+          { required: true, message: 'Please input your email!' },
+          { type: 'email', message: 'Please input a valid email!' }
+        ]}
+      >
+        <Input prefix={<MailOutlined />} placeholder="Email" allowClear />
       </Form.Item>
 
       <Form.Item

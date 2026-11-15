@@ -58,8 +58,8 @@ export function useUpdateEmailMutation() {
       if (!isSuccess || !data) throw new Error(message)
       return data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: accountEmailQueryKey })
+    onSuccess: (data) => {
+      queryClient.setQueryData(accountEmailQueryKey, data)
     }
   })
 
