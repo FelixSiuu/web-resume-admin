@@ -10,6 +10,11 @@ export interface LoginDto {
 export interface RegisterDto {
   username: string
   password: string
+  email: string
+}
+
+export interface VerifyEmailDto {
+  token: string
 }
 
 const basePath = '/auth'
@@ -34,5 +39,9 @@ export const userService = {
   refresh: async (): Promise<BaseVo<LoginVo>> => {
     const url = `${basePath}/refresh`
     return api.post(url)
+  },
+  verifyEmail: async (postBody: VerifyEmailDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/verify-email`
+    return api.post(url, postBody, { skipAuthRefresh: true })
   }
 }

@@ -1,6 +1,8 @@
-import { ChangePasswordDto, accountService } from '@/services/account.service'
+import { ChangePasswordDto, EmailDto, EmailVo, accountService } from '@/services/account.service'
 import { handleUnauthorized } from '@/services/api'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+const accountEmailQueryKey = ['getAccountEmail'] as const
 
 export function useChangePasswordMutation() {
   const { mutateAsync: changePassword, isPending: isPendingChangePassword } = useMutation({
@@ -29,5 +31,40 @@ export function useDeleteAccountMutation() {
   return {
     deleteAccount,
     isPendingDeleteAccount
+  }
+}
+
+export function useEmailQuery() {
+  const { data, isLoading: isLoadingEmail } = useQuery<EmailVo>({
+    queryKey: accountEmailQueryKey,
+    queryFn: async () => {
+      const { isSuccess, message, data } = await accountService.getEmail()
+      if (!isSuccess || !data) throw new Error(message)
+      return data
+    }
+  })
+
+  return {
+    emailStatus: data,
+    isLoadingEmail
+  }
+}
+
+export function useUpdateEmailMutation() {
+  const queryClient = useQueryClient()
+  const { mutateAsync: updateEmail, isPending: isPendingUpdateEmail } = useMutation({
+    mutationFn: async (postBody: EmailDto): Promise<EmailVo> => {
+      const { isSuccess, message, data } = await accountService.updateEmail(postBody)
+      if (!isSuccess || !data) throw new Error(message)
+      return data
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(accountEmailQueryKey, data)
+    }
+  })
+
+  return {
+    updateEmail,
+    isPendingUpdateEmail
   }
 }

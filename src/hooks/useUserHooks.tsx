@@ -1,4 +1,4 @@
-import { LoginDto, RegisterDto, userService } from '@/services/user.service'
+import { LoginDto, RegisterDto, VerifyEmailDto, userService } from '@/services/user.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const userQueryKeys = {
@@ -55,5 +55,19 @@ export function useRegisterMutation() {
   return {
     register,
     isPendingRegister
+  }
+}
+
+export function useVerifyEmailMutation() {
+  const { mutateAsync: verifyEmail, isPending: isPendingVerifyEmail } = useMutation({
+    mutationFn: async (postBody: VerifyEmailDto) => {
+      const { isSuccess, message } = await userService.verifyEmail(postBody)
+      if (!isSuccess) throw new Error(message)
+    }
+  })
+
+  return {
+    verifyEmail,
+    isPendingVerifyEmail
   }
 }

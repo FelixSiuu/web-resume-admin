@@ -5,6 +5,16 @@ export interface ChangePasswordDto {
   newPassword: string
 }
 
+export interface EmailDto {
+  email: string
+}
+
+export interface EmailVo {
+  email: string
+  verified: boolean
+  nextStepMessage?: string
+}
+
 const basePath = '/account'
 
 export const accountService = {
@@ -14,5 +24,13 @@ export const accountService = {
   },
   deleteAccount: async (): Promise<BaseVo<void>> => {
     return api.delete(basePath)
+  },
+  getEmail: async (): Promise<BaseVo<EmailVo>> => {
+    const url = `${basePath}/email`
+    return api.get(url)
+  },
+  updateEmail: async (postBody: EmailDto): Promise<BaseVo<EmailVo>> => {
+    const url = `${basePath}/update-email`
+    return api.put(url, postBody)
   }
 }
