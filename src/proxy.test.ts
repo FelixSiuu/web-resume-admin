@@ -30,4 +30,14 @@ describe('proxy', () => {
     const response = proxy(createRequest('/login'))
     expect(response.status).toBe(200)
   })
+
+  it('allows "/forgot-password" without cookie checks', () => {
+    const response = proxy(createRequest('/forgot-password'))
+    expect(response.status).toBe(200)
+  })
+
+  it('allows "/reset-password" without cookie checks', () => {
+    const response = proxy(createRequest('/reset-password'))
+    expect(response.status).toBe(200)
+  })
 })

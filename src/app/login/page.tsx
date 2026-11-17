@@ -7,6 +7,7 @@ import { Button, Checkbox, Flex, Form, Image, Input, message } from 'antd'
 import { useCaptchaQuery, useLoginMutation } from '@/hooks/useUserHooks'
 import { LoginDto } from '@/services/user.service'
 import RegisterForm from '@/components/registerForm'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -103,7 +104,7 @@ const Login = () => {
               <Form.Item name="rememberMe" valuePropName="checked" noStyle>
                 <Checkbox>Remember me</Checkbox>
               </Form.Item>
-              {/* <a href="">Forgot password</a> */}
+              <Link href="/forgot-password">Forgot password</Link>
             </Flex>
           </Form.Item>
 

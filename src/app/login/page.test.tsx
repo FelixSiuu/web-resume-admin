@@ -133,4 +133,10 @@ describe('Login page', () => {
     expect(setXsrfTokenMock).not.toHaveBeenCalled()
     expect(screen.getByPlaceholderText('Captcha')).toHaveValue('')
   })
+
+  it('links Forgot password to /forgot-password', () => {
+    render(<Login />)
+
+    expect(screen.getByRole('link', { name: 'Forgot password' })).toHaveAttribute('href', '/forgot-password')
+  })
 })
