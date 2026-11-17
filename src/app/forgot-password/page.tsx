@@ -143,7 +143,11 @@ const ForgotPassword = () => {
               <Button block type="primary" htmlType="submit" disabled={isPendingForgotPassword || cooldownSeconds > 0}>
                 {submitLabel}
               </Button>
-              <Link href="/login">Back to login</Link>
+              <Link href="/login">
+                <Button type="link" htmlType="button">
+                  Back to login
+                </Button>
+              </Link>
             </Form.Item>
           </Form>
         )}

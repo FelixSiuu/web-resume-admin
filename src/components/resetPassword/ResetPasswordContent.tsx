@@ -133,7 +133,11 @@ const ResetPasswordContent = () => {
         <Button block type="primary" htmlType="submit" disabled={isPendingResetPassword}>
           {isPendingResetPassword ? 'submitting...' : 'Reset password'}
         </Button>
-        <Link href="/login">Back to login</Link>
+        <Link href="/login">
+          <Button type="link" htmlType="button">
+            Back to login
+          </Button>
+        </Link>
       </Form.Item>
     </Form>
   )
