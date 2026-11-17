@@ -28,31 +28,10 @@ export interface ResetPasswordDto {
   password: string
 }
 
-/**
- * Forgot-password returns this shape for both isSuccess true and false, including HTTP error bodies.
- * `data` may still carry `cd` when `isSuccess` is false, so this is not the strict FailVo (`data: null`).
- */
-export interface ForgotPasswordResponse {
-  isSuccess: boolean
-  code: string
-  message: string
-  data: CoolDownVo | null
-}
-
-export class ForgotPasswordError extends Error {
-  readonly cd: number
-
-  constructor(message: string, cd = 0) {
-    super(message)
-    this.name = 'ForgotPasswordError'
-    this.cd = cd
-  }
-}
-
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
 /** int64 cooldown may arrive as a number or a numeric string. Non-positive values become 0. */
-export const normalizeCooldownSeconds = (cd: unknown): number => {
+const normalizeCooldownSeconds = (cd: unknown): number => {
   const value = typeof cd === 'string' && cd.trim() !== '' ? Number(cd) : cd
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return 0
   return Math.floor(value)
@@ -63,16 +42,28 @@ const readCoolDownVo = (data: unknown): CoolDownVo | null => {
   return { cd: normalizeCooldownSeconds(data.cd) }
 }
 
-export const parseForgotPasswordResponse = (value: unknown): ForgotPasswordResponse | null => {
-  if (!isRecord(value)) return null
-  if (typeof value.isSuccess !== 'boolean' || typeof value.message !== 'string') return null
+const parseForgotPasswordResponse = (value: unknown): BaseVo<CoolDownVo> | null => {
+  if (!isRecord(value) || typeof value.message !== 'string') return null
 
-  return {
-    isSuccess: value.isSuccess,
-    code: typeof value.code === 'string' ? value.code : '',
-    message: value.message,
-    data: readCoolDownVo(value.data)
+  if (value.isSuccess === true) {
+    return {
+      isSuccess: true,
+      code: 'OK',
+      message: value.message,
+      data: readCoolDownVo(value.data) ?? { cd: 0 }
+    }
   }
+
+  if (value.isSuccess === false) {
+    return {
+      isSuccess: false,
+      code: typeof value.code === 'string' ? value.code : '',
+      message: value.message,
+      data: readCoolDownVo(value.data)
+    }
+  }
+
+  return null
 }
 
 const basePath = '/auth'
@@ -102,7 +93,7 @@ export const userService = {
     const url = `${basePath}/verify-email`
     return api.post(url, postBody, { skipAuthRefresh: true })
   },
-  forgotPassword: async (postBody: ForgotPasswordDto): Promise<ForgotPasswordResponse> => {
+  forgotPassword: async (postBody: ForgotPasswordDto): Promise<BaseVo<CoolDownVo>> => {
     const url = `${basePath}/forgot-password`
     try {
       const body = await api.post<CoolDownVo>(url, postBody, { skipAuthRefresh: true })

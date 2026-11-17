@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { LoadingOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons'
 import { Button, Flex, Form, Image, Input, Result, message } from 'antd'
 import { useCaptchaQuery, useForgotPasswordMutation } from '@/hooks/useUserHooks'
-import { ForgotPasswordError } from '@/services/user.service'
 
 type ForgotPasswordFormValues = {
   email: string
@@ -60,8 +59,16 @@ const ForgotPassword = () => {
         captcha: values.captcha
       })
       messageApi.destroy()
+      startCooldown(result.data?.cd ?? 0)
+
+      if (!result.isSuccess) {
+        messageApi.error(result.message)
+        refreshCaptcha()
+        form.setFieldValue('captcha', '')
+        return
+      }
+
       setSubmittedEmail(email)
-      startCooldown(result.cd)
       setSuccessMessage(result.message)
     } catch (error) {
       messageApi.destroy()
@@ -69,9 +76,6 @@ const ForgotPassword = () => {
       messageApi.error(errorText)
       refreshCaptcha()
       form.setFieldValue('captcha', '')
-      if (error instanceof ForgotPasswordError) {
-        startCooldown(error.cd)
-      }
     }
   }
 

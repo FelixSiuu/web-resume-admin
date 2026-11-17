@@ -6,16 +6,17 @@ declare interface SuccessVo<T> {
   data: T
 }
 
-// 2. 失敗的結構：isSuccess 必為 false，data 固定為 null
-declare interface FailVo {
+// 2. 失敗的結構：isSuccess 必為 false，data 可能是 T 或 null
+declare interface FailVo<T = null> {
   isSuccess: false
   code: string // 錯誤代碼
   message: string
-  data: null
+  data: T | null
 }
 
 // 3. 統一的 BaseVo：對應後端的 BaseVo<T>
-declare type BaseVo<T> = SuccessVo<T> | FailVo
+// isSuccess 為 true 時 data 是 T；為 false 時 data 可能是 T 或 null
+declare type BaseVo<T> = SuccessVo<T> | FailVo<T>
 
 declare interface About {
   id: number

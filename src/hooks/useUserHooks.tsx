@@ -1,13 +1,4 @@
-import {
-  ForgotPasswordDto,
-  ForgotPasswordError,
-  LoginDto,
-  RegisterDto,
-  ResetPasswordDto,
-  VerifyEmailDto,
-  normalizeCooldownSeconds,
-  userService
-} from '@/services/user.service'
+import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto, VerifyEmailDto, userService } from '@/services/user.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const userQueryKeys = {
@@ -81,18 +72,10 @@ export function useVerifyEmailMutation() {
   }
 }
 
-export interface ForgotPasswordResult {
-  message: string
-  cd: number
-}
-
 export function useForgotPasswordMutation() {
   const { mutateAsync: forgotPassword, isPending: isPendingForgotPassword } = useMutation({
-    mutationFn: async (postBody: ForgotPasswordDto): Promise<ForgotPasswordResult> => {
-      const { isSuccess, message, data } = await userService.forgotPassword(postBody)
-      const cd = normalizeCooldownSeconds(data?.cd)
-      if (!isSuccess) throw new ForgotPasswordError(message, cd)
-      return { message, cd }
+    mutationFn: async (postBody: ForgotPasswordDto): Promise<BaseVo<CoolDownVo>> => {
+      return userService.forgotPassword(postBody)
     }
   })
 

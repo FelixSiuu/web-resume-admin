@@ -1,8 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ForgotPasswordError } from '@/services/user.service'
 import ForgotPassword from './page'
+
+const successBody = (message: string, cd: number) => ({
+  isSuccess: true as const,
+  code: 'OK' as const,
+  message,
+  data: { cd }
+})
 
 const { forgotPasswordMock, refreshCaptchaMock, pendingState } = vi.hoisted(() => ({
   forgotPasswordMock: vi.fn(),
@@ -35,10 +41,7 @@ describe('Forgot password page', () => {
   })
 
   it('sends a reset link and shows the backend message', async () => {
-    forgotPasswordMock.mockResolvedValueOnce({
-      message: 'We sent a reset link to your inbox.',
-      cd: 0
-    })
+    forgotPasswordMock.mockResolvedValueOnce(successBody('We sent a reset link to your inbox.', 0))
 
     const user = userEvent.setup()
     render(<ForgotPassword />)
@@ -62,10 +65,7 @@ describe('Forgot password page', () => {
   })
 
   it('returns to the form with the same email and a refreshed captcha when Resend is clicked', async () => {
-    forgotPasswordMock.mockResolvedValueOnce({
-      message: 'We sent a reset link to your inbox.',
-      cd: 0
-    })
+    forgotPasswordMock.mockResolvedValueOnce(successBody('We sent a reset link to your inbox.', 0))
 
     const user = userEvent.setup()
     render(<ForgotPassword />)
@@ -84,10 +84,7 @@ describe('Forgot password page', () => {
   })
 
   it('disables resend until the cooldown from a successful response ends', async () => {
-    forgotPasswordMock.mockResolvedValueOnce({
-      message: 'We sent a reset link to your inbox.',
-      cd: 1
-    })
+    forgotPasswordMock.mockResolvedValueOnce(successBody('We sent a reset link to your inbox.', 1))
 
     const user = userEvent.setup()
     render(<ForgotPassword />)
@@ -126,9 +123,12 @@ describe('Forgot password page', () => {
   })
 
   it('disables submit for the cooldown on a failed response', async () => {
-    forgotPasswordMock.mockRejectedValueOnce(
-      new ForgotPasswordError('Please wait before requesting another link.', 45)
-    )
+    forgotPasswordMock.mockResolvedValueOnce({
+      isSuccess: false,
+      code: 'RATE_LIMIT',
+      message: 'Please wait before requesting another link.',
+      data: { cd: 45 }
+    })
 
     const user = userEvent.setup()
     render(<ForgotPassword />)
