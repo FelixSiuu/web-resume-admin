@@ -1,3 +1,4 @@
+import axios from 'axios'
 import api from './api'
 
 export interface LoginDto {
@@ -27,6 +28,53 @@ export interface ResetPasswordDto {
   password: string
 }
 
+/**
+ * Forgot-password returns this shape for both isSuccess true and false, including HTTP error bodies.
+ * `data` may still carry `cd` when `isSuccess` is false, so this is not the strict FailVo (`data: null`).
+ */
+export interface ForgotPasswordResponse {
+  isSuccess: boolean
+  code: string
+  message: string
+  data: CoolDownVo | null
+}
+
+export class ForgotPasswordError extends Error {
+  readonly cd: number
+
+  constructor(message: string, cd = 0) {
+    super(message)
+    this.name = 'ForgotPasswordError'
+    this.cd = cd
+  }
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+
+/** int64 cooldown may arrive as a number or a numeric string. Non-positive values become 0. */
+export const normalizeCooldownSeconds = (cd: unknown): number => {
+  const value = typeof cd === 'string' && cd.trim() !== '' ? Number(cd) : cd
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return 0
+  return Math.floor(value)
+}
+
+const readCoolDownVo = (data: unknown): CoolDownVo | null => {
+  if (!isRecord(data) || !('cd' in data)) return null
+  return { cd: normalizeCooldownSeconds(data.cd) }
+}
+
+export const parseForgotPasswordResponse = (value: unknown): ForgotPasswordResponse | null => {
+  if (!isRecord(value)) return null
+  if (typeof value.isSuccess !== 'boolean' || typeof value.message !== 'string') return null
+
+  return {
+    isSuccess: value.isSuccess,
+    code: typeof value.code === 'string' ? value.code : '',
+    message: value.message,
+    data: readCoolDownVo(value.data)
+  }
+}
+
 const basePath = '/auth'
 
 export const userService = {
@@ -54,9 +102,22 @@ export const userService = {
     const url = `${basePath}/verify-email`
     return api.post(url, postBody, { skipAuthRefresh: true })
   },
-  forgotPassword: async (postBody: ForgotPasswordDto): Promise<BaseVo<void>> => {
+  forgotPassword: async (postBody: ForgotPasswordDto): Promise<ForgotPasswordResponse> => {
     const url = `${basePath}/forgot-password`
-    return api.post(url, postBody, { skipAuthRefresh: true })
+    try {
+      const body = await api.post<CoolDownVo>(url, postBody, { skipAuthRefresh: true })
+      const parsed = parseForgotPasswordResponse(body)
+      if (!parsed) {
+        throw new Error('Failed to send reset link, please try again.')
+      }
+      return parsed
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const parsed = parseForgotPasswordResponse(error.response?.data)
+        if (parsed) return parsed
+      }
+      throw error
+    }
   },
   resetPassword: async (postBody: ResetPasswordDto): Promise<BaseVo<void>> => {
     const url = `${basePath}/reset-password`

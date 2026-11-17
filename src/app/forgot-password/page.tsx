@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { LoadingOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons'
 import { Button, Flex, Form, Image, Input, Result, message } from 'antd'
 import { useCaptchaQuery, useForgotPasswordMutation } from '@/hooks/useUserHooks'
+import { ForgotPasswordError } from '@/services/user.service'
 
 type ForgotPasswordFormValues = {
   email: string
@@ -13,14 +14,40 @@ type ForgotPasswordFormValues = {
 
 const trimValue = (value: unknown) => (typeof value === 'string' ? value.trim() : value)
 
+const cooldownLabel = (seconds: number, idleLabel: string) => (seconds > 0 ? `Resend in ${seconds}s` : idleLabel)
+
 const ForgotPassword = () => {
   const [form] = Form.useForm<ForgotPasswordFormValues>()
   const [messageApi, contextHolder] = message.useMessage()
   const { captchaImgUrl, isFetchingCaptcha, refreshCaptcha } = useCaptchaQuery()
   const { forgotPassword, isPendingForgotPassword } = useForgotPasswordMutation()
+  const [submittedEmail, setSubmittedEmail] = useState('')
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [cooldownSeconds, setCooldownSeconds] = useState(0)
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return undefined
+
+    const timer = window.setTimeout(() => {
+      setCooldownSeconds((current) => (current > 0 ? current - 1 : 0))
+    }, 1000)
+
+    return () => window.clearTimeout(timer)
+  }, [cooldownSeconds])
+
+  useEffect(() => {
+    if (successMessage !== null || !submittedEmail) return
+    form.setFieldValue('email', submittedEmail)
+    form.setFieldValue('captcha', '')
+  }, [form, submittedEmail, successMessage])
+
+  const startCooldown = (cd: number) => {
+    if (cd > 0) setCooldownSeconds(cd)
+  }
 
   const onFinish = async (values: ForgotPasswordFormValues) => {
+    const email = values.email.trim()
+
     messageApi.open({
       type: 'loading',
       content: 'Submitting...',
@@ -28,20 +55,35 @@ const ForgotPassword = () => {
     })
 
     try {
-      const responseMessage = await forgotPassword({
-        email: values.email.trim(),
+      const result = await forgotPassword({
+        email,
         captcha: values.captcha
       })
       messageApi.destroy()
-      setSuccessMessage(responseMessage)
+      setSubmittedEmail(email)
+      startCooldown(result.cd)
+      setSuccessMessage(result.message)
     } catch (error) {
       messageApi.destroy()
       const errorText = error instanceof Error ? error.message : 'Failed to send reset link, please try again.'
       messageApi.error(errorText)
       refreshCaptcha()
       form.setFieldValue('captcha', '')
+      if (error instanceof ForgotPasswordError) {
+        startCooldown(error.cd)
+      }
     }
   }
+
+  // The API requires a new captcha, so resend only returns to the form.
+  const handleResend = () => {
+    form.setFieldValue('email', submittedEmail)
+    form.setFieldValue('captcha', '')
+    setSuccessMessage(null)
+    refreshCaptcha()
+  }
+
+  const submitLabel = isPendingForgotPassword ? 'submitting...' : cooldownLabel(cooldownSeconds, 'Send reset link')
 
   return (
     <main className="min-h-screen flex justify-center items-center">
@@ -53,11 +95,14 @@ const ForgotPassword = () => {
             status="success"
             title="Check your email"
             subTitle={successMessage}
-            extra={
-              <Link href="/login">
-                <Button type="primary">Back to login</Button>
+            extra={[
+              <Button key="resend" type="primary" htmlType="button" disabled={cooldownSeconds > 0} onClick={handleResend}>
+                {cooldownLabel(cooldownSeconds, 'Resend')}
+              </Button>,
+              <Link key="login" href="/login">
+                <Button htmlType="button">Back to login</Button>
               </Link>
-            }
+            ]}
           />
         ) : (
           <Form
@@ -66,6 +111,7 @@ const ForgotPassword = () => {
             size="large"
             onFinish={onFinish}
             disabled={isPendingForgotPassword}
+            initialValues={{ email: submittedEmail }}
             autoComplete="off"
             clearOnDestroy
           >
@@ -94,8 +140,8 @@ const ForgotPassword = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button block type="primary" htmlType="submit" disabled={isPendingForgotPassword}>
-                {isPendingForgotPassword ? 'submitting...' : 'Send reset link'}
+              <Button block type="primary" htmlType="submit" disabled={isPendingForgotPassword || cooldownSeconds > 0}>
+                {submitLabel}
               </Button>
               <Link href="/login">Back to login</Link>
             </Form.Item>

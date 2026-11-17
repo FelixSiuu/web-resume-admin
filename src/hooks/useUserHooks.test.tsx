@@ -9,12 +9,16 @@ const { forgotPasswordMock, resetPasswordMock } = vi.hoisted(() => ({
   resetPasswordMock: vi.fn()
 }))
 
-vi.mock('@/services/user.service', () => ({
-  userService: {
-    forgotPassword: forgotPasswordMock,
-    resetPassword: resetPasswordMock
+vi.mock('@/services/user.service', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/user.service')>()
+  return {
+    ...actual,
+    userService: {
+      forgotPassword: forgotPasswordMock,
+      resetPassword: resetPasswordMock
+    }
   }
-}))
+})
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -35,22 +39,39 @@ describe('password reset hooks', () => {
     resetPasswordMock.mockReset()
   })
 
-  it('returns BaseVo.message when forgot-password succeeds', async () => {
+  it('returns BaseVo.message and cooldown when forgot-password succeeds', async () => {
     forgotPasswordMock.mockResolvedValueOnce({
       isSuccess: true,
       code: 'OK',
       message: 'We sent a reset link to your inbox.',
-      data: null
+      data: { cd: 45 }
     })
 
     const { result } = renderHook(() => useForgotPasswordMutation(), { wrapper: createWrapper() })
 
-    await expect(result.current.forgotPassword({ email: 'user@example.com', captcha: 'abcd' })).resolves.toBe(
-      'We sent a reset link to your inbox.'
-    )
+    await expect(result.current.forgotPassword({ email: 'user@example.com', captcha: 'abcd' })).resolves.toEqual({
+      message: 'We sent a reset link to your inbox.',
+      cd: 45
+    })
   })
 
-  it('throws BaseVo.message when forgot-password fails', async () => {
+  it('throws BaseVo.message and keeps cooldown when forgot-password fails', async () => {
+    forgotPasswordMock.mockResolvedValueOnce({
+      isSuccess: false,
+      code: 'RATE_LIMIT',
+      message: 'Please wait before requesting another link.',
+      data: { cd: '30' }
+    })
+
+    const { result } = renderHook(() => useForgotPasswordMutation(), { wrapper: createWrapper() })
+
+    await expect(result.current.forgotPassword({ email: 'user@example.com', captcha: 'bad' })).rejects.toMatchObject({
+      message: 'Please wait before requesting another link.',
+      cd: 30
+    })
+  })
+
+  it('uses cooldown 0 when a failed forgot-password response has no cd', async () => {
     forgotPasswordMock.mockResolvedValueOnce({
       isSuccess: false,
       code: 'CAPTCHA_INVALID',
@@ -60,9 +81,10 @@ describe('password reset hooks', () => {
 
     const { result } = renderHook(() => useForgotPasswordMutation(), { wrapper: createWrapper() })
 
-    await expect(result.current.forgotPassword({ email: 'user@example.com', captcha: 'bad' })).rejects.toThrow(
-      'Captcha is incorrect'
-    )
+    await expect(result.current.forgotPassword({ email: 'user@example.com', captcha: 'bad' })).rejects.toMatchObject({
+      message: 'Captcha is incorrect',
+      cd: 0
+    })
   })
 
   it('returns BaseVo.message when reset-password succeeds', async () => {
