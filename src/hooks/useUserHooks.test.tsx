@@ -2,17 +2,19 @@ import type { ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useForgotPasswordMutation, useResetPasswordMutation } from './useUserHooks'
+import { useForgotPasswordMutation, useResetPasswordMutation, useValidateResetTokenMutation } from './useUserHooks'
 
-const { forgotPasswordMock, resetPasswordMock } = vi.hoisted(() => ({
+const { forgotPasswordMock, resetPasswordMock, validateResetTokenMock } = vi.hoisted(() => ({
   forgotPasswordMock: vi.fn(),
-  resetPasswordMock: vi.fn()
+  resetPasswordMock: vi.fn(),
+  validateResetTokenMock: vi.fn()
 }))
 
 vi.mock('@/services/user.service', () => ({
   userService: {
     forgotPassword: forgotPasswordMock,
-    resetPassword: resetPasswordMock
+    resetPassword: resetPasswordMock,
+    validateResetToken: validateResetTokenMock
   }
 }))
 
@@ -33,6 +35,7 @@ describe('password reset hooks', () => {
   beforeEach(() => {
     forgotPasswordMock.mockReset()
     resetPasswordMock.mockReset()
+    validateResetTokenMock.mockReset()
   })
 
   it('returns the success BaseVo including data.cd', async () => {
@@ -75,6 +78,34 @@ describe('password reset hooks', () => {
     const { result } = renderHook(() => useForgotPasswordMutation(), { wrapper: createWrapper() })
 
     await expect(result.current.forgotPassword({ email: 'user@example.com', captcha: 'bad' })).resolves.toEqual(body)
+  })
+
+  it('returns BaseVo.message when the reset token is valid', async () => {
+    validateResetTokenMock.mockResolvedValueOnce({
+      isSuccess: true,
+      code: 'OK',
+      message: 'Reset link is valid.',
+      data: null
+    })
+
+    const { result } = renderHook(() => useValidateResetTokenMutation(), { wrapper: createWrapper() })
+
+    await expect(result.current.validateResetToken({ token: 'reset-token' })).resolves.toBe('Reset link is valid.')
+  })
+
+  it('throws BaseVo.message when the reset token is invalid', async () => {
+    validateResetTokenMock.mockResolvedValueOnce({
+      isSuccess: false,
+      code: 'TOKEN_EXPIRED',
+      message: 'Reset link is invalid or has expired.',
+      data: null
+    })
+
+    const { result } = renderHook(() => useValidateResetTokenMutation(), { wrapper: createWrapper() })
+
+    await expect(result.current.validateResetToken({ token: 'expired-token' })).rejects.toThrow(
+      'Reset link is invalid or has expired.'
+    )
   })
 
   it('returns BaseVo.message when reset-password succeeds', async () => {

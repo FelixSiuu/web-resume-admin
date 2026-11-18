@@ -20,10 +20,7 @@ const VerifyEmailContent = () => {
   const [errorMessage, setErrorMessage] = useState('Verification failed.')
 
   useEffect(() => {
-    if (!token) {
-      setStatus('missing')
-      return
-    }
+    if (!token) return
 
     if (requestedTokenRef.current === token) return
     requestedTokenRef.current = token

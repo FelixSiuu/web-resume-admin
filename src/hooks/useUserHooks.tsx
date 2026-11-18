@@ -1,4 +1,12 @@
-import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto, VerifyEmailDto, userService } from '@/services/user.service'
+import {
+  ForgotPasswordDto,
+  LoginDto,
+  RegisterDto,
+  ResetPasswordDto,
+  ValidateResetTokenDto,
+  VerifyEmailDto,
+  userService
+} from '@/services/user.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const userQueryKeys = {
@@ -82,6 +90,21 @@ export function useForgotPasswordMutation() {
   return {
     forgotPassword,
     isPendingForgotPassword
+  }
+}
+
+export function useValidateResetTokenMutation() {
+  const { mutateAsync: validateResetToken, isPending: isPendingValidateResetToken } = useMutation({
+    mutationFn: async (postBody: ValidateResetTokenDto) => {
+      const { isSuccess, message } = await userService.validateResetToken(postBody)
+      if (!isSuccess) throw new Error(message)
+      return message
+    }
+  })
+
+  return {
+    validateResetToken,
+    isPendingValidateResetToken
   }
 }
 

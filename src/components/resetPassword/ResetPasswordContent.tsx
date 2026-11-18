@@ -1,26 +1,49 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { LockOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Result } from 'antd'
-import { useResetPasswordMutation } from '@/hooks/useUserHooks'
+import { Button, Form, Input, Result, Spin } from 'antd'
+import { useResetPasswordMutation, useValidateResetTokenMutation } from '@/hooks/useUserHooks'
 
 type ResetPasswordFormValues = {
   password: string
   confirmPassword: string
 }
 
-type ResetStatus = 'form' | 'success' | 'error'
+type ResetStatus = 'missing' | 'validating' | 'form' | 'invalid' | 'success' | 'error'
 
 const ResetPasswordContent = () => {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')?.trim() || ''
   const [form] = Form.useForm<ResetPasswordFormValues>()
   const { resetPassword, isPendingResetPassword } = useResetPasswordMutation()
-  const [status, setStatus] = useState<ResetStatus>('form')
+  const { validateResetToken } = useValidateResetTokenMutation()
+  const requestedTokenRef = useRef<string | null>(null)
+  const [status, setStatus] = useState<ResetStatus>(token ? 'validating' : 'missing')
   const [resultMessage, setResultMessage] = useState('')
+
+  useEffect(() => {
+    if (!token) return
+
+    if (requestedTokenRef.current === token) return
+    requestedTokenRef.current = token
+
+    const run = async () => {
+      setStatus('validating')
+      try {
+        await validateResetToken({ token })
+        setStatus('form')
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to validate reset link, please try again.'
+        setResultMessage(message)
+        setStatus('invalid')
+      }
+    }
+
+    void run()
+  }, [token, validateResetToken])
 
   const onFinish = async (values: ResetPasswordFormValues) => {
     try {
@@ -37,12 +60,38 @@ const ResetPasswordContent = () => {
     }
   }
 
-  if (!token) {
+  if (!token || status === 'missing') {
     return (
       <Result
         status="warning"
         title="Missing reset token"
         subTitle="Open the link from your email to reset your password."
+        extra={[
+          <Link key="request" href="/forgot-password">
+            <Button type="primary">Request a new link</Button>
+          </Link>,
+          <Link key="login" href="/login">
+            <Button>Back to login</Button>
+          </Link>
+        ]}
+      />
+    )
+  }
+
+  if (status === 'validating') {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
+        <Spin size="large" />
+        <span>Checking reset link...</span>
+      </div>
+    )
+  }
+
+  if (status === 'invalid') {
+    return (
+      <Result
+        status="error"
+        title={resultMessage}
         extra={[
           <Link key="request" href="/forgot-password">
             <Button type="primary">Request a new link</Button>

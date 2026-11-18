@@ -28,6 +28,10 @@ export interface ResetPasswordDto {
   password: string
 }
 
+export interface ValidateResetTokenDto {
+  token: string
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
 /** int64 cooldown may arrive as a number or a numeric string. Non-positive values become 0. */
@@ -60,6 +64,32 @@ const parseForgotPasswordResponse = (value: unknown): BaseVo<CoolDownVo> | null 
       code: typeof value.code === 'string' ? value.code : '',
       message: value.message,
       data: readCoolDownVo(value.data)
+    }
+  }
+
+  return null
+}
+
+const parseValidateResetTokenResponse = (value: unknown): BaseVo<unknown> | null => {
+  if (!isRecord(value) || typeof value.message !== 'string') return null
+
+  const data = 'data' in value ? value.data : null
+
+  if (value.isSuccess === true) {
+    return {
+      isSuccess: true,
+      code: 'OK',
+      message: value.message,
+      data
+    }
+  }
+
+  if (value.isSuccess === false) {
+    return {
+      isSuccess: false,
+      code: typeof value.code === 'string' ? value.code : '',
+      message: value.message,
+      data
     }
   }
 
@@ -113,5 +143,22 @@ export const userService = {
   resetPassword: async (postBody: ResetPasswordDto): Promise<BaseVo<void>> => {
     const url = `${basePath}/reset-password`
     return api.post(url, postBody, { skipAuthRefresh: true })
+  },
+  validateResetToken: async (postBody: ValidateResetTokenDto): Promise<BaseVo<unknown>> => {
+    const url = `${basePath}/validate-reset-token`
+    try {
+      const body = await api.post(url, postBody, { skipAuthRefresh: true })
+      const parsed = parseValidateResetTokenResponse(body)
+      if (!parsed) {
+        throw new Error('Failed to validate reset link, please try again.')
+      }
+      return parsed
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const parsed = parseValidateResetTokenResponse(error.response?.data)
+        if (parsed) return parsed
+      }
+      throw error
+    }
   }
 }

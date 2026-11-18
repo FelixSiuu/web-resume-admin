@@ -74,6 +74,43 @@ describe('userService password reset endpoints', () => {
     await expect(userService.forgotPassword({ email: 'user@example.com', captcha: 'abcd' })).rejects.toBe(networkError)
   })
 
+  it('posts /auth/validate-reset-token with the token', async () => {
+    const response = { isSuccess: true, code: 'OK', message: 'Reset link is valid.', data: null }
+    postMock.mockResolvedValueOnce(response)
+
+    const result = await userService.validateResetToken({ token: 'reset-token' })
+
+    expect(postMock).toHaveBeenCalledWith('/auth/validate-reset-token', { token: 'reset-token' }, { skipAuthRefresh: true })
+    expect(result).toEqual(response)
+  })
+
+  it('keeps the validate-reset-token message from an HTTP error body', async () => {
+    postMock.mockRejectedValueOnce(
+      new axios.AxiosError(
+        'Request failed with status code 400',
+        axios.AxiosError.ERR_BAD_REQUEST,
+        undefined,
+        undefined,
+        axiosResponse(
+          {
+            isSuccess: false,
+            code: 'TOKEN_EXPIRED',
+            message: 'Reset link is invalid or has expired.',
+            data: null
+          },
+          400
+        )
+      )
+    )
+
+    await expect(userService.validateResetToken({ token: 'expired-token' })).resolves.toEqual({
+      isSuccess: false,
+      code: 'TOKEN_EXPIRED',
+      message: 'Reset link is invalid or has expired.',
+      data: null
+    })
+  })
+
   it('posts /auth/reset-password with token and password', async () => {
     const response = { isSuccess: true, code: 'OK', message: 'updated', data: null }
     postMock.mockResolvedValueOnce(response)
