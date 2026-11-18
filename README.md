@@ -59,6 +59,9 @@ npm run test
 ## Main Routes
 
 - `/login`: login, captcha, register modal
+- `/forgot-password`: request a reset link with registration email + captcha; prompt is `BaseVo.message`; cooldown seconds come from `data.cd` (`data === null` is a captcha error: refresh captcha, no countdown)
+- `/reset-password`: email link `?token=`; validates the token on entry, then shows the new-password form
+- `/verify-email`: email link `?token=` confirms the address
 - `/overview/aboutme`
 - `/overview/coreskills`
 - `/overview/workingexperience`
@@ -71,7 +74,9 @@ npm run test
 
 ## Auth & Routing Notes
 
-- Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts` (route-only; no cookie gate).
+- Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts` (route-only; no cookie gate). `/login`, `/verify-email`, `/forgot-password`, and `/reset-password` stay public.
+- `POST /auth/forgot-password` always returns HTTP 200 `BaseVo`. When `data` is present, `data.cd` is the cooldown in seconds.
+- `/reset-password` calls `POST /auth/validate-reset-token` on entry. An expired or invalid token shows `message` and links back to `/forgot-password`. Submitting a new password uses `POST /auth/reset-password`.
 - Auth cookie `ACCESS_TOKEN` is HttpOnly on the API origin (`SameSite=None; Secure; Path=/`). Frontend and API are cross-origin; the Next app never reads this cookie.
 - Axios uses `withCredentials: true` so browser sends `ACCESS_TOKEN` on API calls.
 - CSRF (double-submit): API still sets `XSRF_TOKEN` cookie (browser sends it with credentials). Because cross-origin JS cannot read that cookie, `LoginVo.xsrfToken` is stored in Zustand (persisted) and sent as header `Xsrf-Token` on POST/PUT/DELETE. Cookie `document.cookie` is only a same-site / localhost fallback.
