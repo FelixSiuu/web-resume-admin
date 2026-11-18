@@ -17,6 +17,20 @@ export interface VerifyEmailDto {
   token: string
 }
 
+export interface ForgotPasswordDto {
+  email: string
+  captcha: string
+}
+
+export interface ResetPasswordDto {
+  token: string
+  password: string
+}
+
+export interface ValidateResetTokenDto {
+  token: string
+}
+
 const basePath = '/auth'
 
 export const userService = {
@@ -42,6 +56,18 @@ export const userService = {
   },
   verifyEmail: async (postBody: VerifyEmailDto): Promise<BaseVo<void>> => {
     const url = `${basePath}/verify-email`
+    return api.post(url, postBody, { skipAuthRefresh: true })
+  },
+  forgotPassword: async (postBody: ForgotPasswordDto): Promise<BaseVo<CoolDownVo>> => {
+    const url = `${basePath}/forgot-password`
+    return api.post(url, postBody, { skipAuthRefresh: true })
+  },
+  resetPassword: async (postBody: ResetPasswordDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/reset-password`
+    return api.post(url, postBody, { skipAuthRefresh: true })
+  },
+  validateResetToken: async (postBody: ValidateResetTokenDto): Promise<BaseVo<void>> => {
+    const url = `${basePath}/validate-reset-token`
     return api.post(url, postBody, { skipAuthRefresh: true })
   }
 }
