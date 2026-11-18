@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
-import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { clearAuthSession } from '@/services/auth-session'
 import { useAuthStore } from '@/stores/auth.store'
 import { getCookie } from '@/utils/cookie'
@@ -26,7 +26,7 @@ const CSRF_METHODS = new Set(['POST', 'PUT', 'DELETE'])
 const AUTH_PATH_PREFIX = '/auth/'
 const REFRESH_PATH = '/auth/refresh'
 
-const api = axios.create({
+export const httpClient = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`,
   timeout: 10000,
   withCredentials: true,
@@ -63,11 +63,43 @@ const isAuthRequest = (url?: string) => {
   return url.includes(AUTH_PATH_PREFIX)
 }
 
+const isBaseVo = <T>(value: unknown): value is BaseVo<T> => {
+  if (typeof value !== 'object' || value === null) return false
+
+  const record = value as Record<string, unknown>
+  return typeof record.isSuccess === 'boolean' && typeof record.code === 'string' && typeof record.message === 'string' && 'data' in record
+}
+
+/**
+ * Business HTTP 4xx bodies are BaseVo. 401/403 stay rejected so the login redirect is unchanged.
+ * 2xx never reaches this helper: the success interceptor already returned response.data.
+ */
+const baseVoFromError = <T>(error: unknown): BaseVo<T> | undefined => {
+  if (!axios.isAxiosError(error)) return undefined
+
+  const status = error.response?.status
+  if (status === undefined || status < 400 || status >= 500 || status === 401 || status === 403) return undefined
+
+  const data = error.response?.data
+  if (!isBaseVo<T>(data)) return undefined
+  return data
+}
+
+const withBaseVo = async <T>(request: Promise<BaseVo<T>>): Promise<BaseVo<T>> => {
+  try {
+    return await request
+  } catch (error) {
+    const body = baseVoFromError<T>(error)
+    if (body) return body
+    throw error
+  }
+}
+
 const refreshAccessToken = (): Promise<void> => {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        const result = await api.post<LoginVo>(REFRESH_PATH, undefined, {
+        const result = await httpClient.post<LoginVo>(REFRESH_PATH, undefined, {
           skipAuthRefresh: true
         })
 
@@ -87,7 +119,7 @@ const refreshAccessToken = (): Promise<void> => {
   return refreshPromise
 }
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+httpClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const method = config.method?.toUpperCase()
   if (!method || !CSRF_METHODS.has(method)) {
     return config
@@ -101,7 +133,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config
 })
 
-api.interceptors.response.use(
+httpClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data as any
   },
@@ -133,7 +165,7 @@ api.interceptors.response.use(
       try {
         await refreshAccessToken()
         originalConfig._retry = true
-        return api(originalConfig)
+        return httpClient(originalConfig)
       } catch {
         console.error('🔒 Refresh 失敗，請重新登入 (401)')
         handleUnauthorized()
@@ -144,5 +176,31 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+interface ApiClient {
+  get(url: string, config: AxiosRequestConfig & { responseType: 'blob' }): Promise<Blob>
+  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<BaseVo<T>>
+  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<BaseVo<T>>
+  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<BaseVo<T>>
+  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<BaseVo<T>>
+}
+
+const api = {
+  get(url: string, config?: AxiosRequestConfig) {
+    if (config?.responseType === 'blob') {
+      return httpClient.get(url, config as AxiosRequestConfig & { responseType: 'blob' })
+    }
+    return withBaseVo(httpClient.get(url, config))
+  },
+  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig) {
+    return withBaseVo<T>(httpClient.post<T>(url, data, config))
+  },
+  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig) {
+    return withBaseVo<T>(httpClient.put<T>(url, data, config))
+  },
+  delete<T = any>(url: string, config?: AxiosRequestConfig) {
+    return withBaseVo<T>(httpClient.delete<T>(url, config))
+  }
+} as ApiClient
 
 export default api
