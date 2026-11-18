@@ -105,8 +105,13 @@ describe('Forgot password page', () => {
     expect(screen.getByPlaceholderText('Captcha')).toHaveValue('')
   })
 
-  it('shows the API error, refreshes captcha, and clears the captcha field', async () => {
-    forgotPasswordMock.mockRejectedValueOnce(new Error('Too many reset attempts. Please try again later.'))
+  it('shows a captcha error without starting a cooldown when data is null', async () => {
+    forgotPasswordMock.mockResolvedValueOnce({
+      isSuccess: false,
+      code: 'CAPTCHA_INVALID',
+      message: 'Captcha is incorrect',
+      data: null
+    })
 
     const user = userEvent.setup()
     render(<ForgotPassword />)
@@ -114,11 +119,12 @@ describe('Forgot password page', () => {
     await fillForm(user, 'user@example.com', 'abcd')
     await user.click(screen.getByRole('button', { name: /send reset link/i }))
 
-    expect(await screen.findByText('Too many reset attempts. Please try again later.')).toBeInTheDocument()
+    expect(await screen.findByText('Captcha is incorrect')).toBeInTheDocument()
     expect(refreshCaptchaMock).toHaveBeenCalledTimes(1)
     expect(screen.getByPlaceholderText('Captcha')).toHaveValue('')
     expect(screen.getByPlaceholderText('Email')).toHaveValue('user@example.com')
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: /resend in/i })).not.toBeInTheDocument()
     expect(screen.queryByText('Check your email')).not.toBeInTheDocument()
   })
 

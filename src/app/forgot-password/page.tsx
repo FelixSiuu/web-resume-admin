@@ -59,15 +59,16 @@ const ForgotPassword = () => {
         captcha: values.captcha
       })
       messageApi.destroy()
-      startCooldown(result.data?.cd ?? 0)
 
       if (!result.isSuccess) {
         messageApi.error(result.message)
         refreshCaptcha()
         form.setFieldValue('captcha', '')
+        if (result.data) startCooldown(result.data.cd)
         return
       }
 
+      startCooldown(result.data.cd)
       setSubmittedEmail(email)
       setSuccessMessage(result.message)
     } catch (error) {
