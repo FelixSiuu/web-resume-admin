@@ -81,6 +81,7 @@ npm run test
 
 ## Auth & Routing Notes
 
+- Auth pages (`/login`, `/forgot-password`, `/reset-password`, `/verify-email`) use a fixed light background and do not follow the OS color scheme.
 - Root path `/` and `/overview` redirect to `/overview/aboutme` via `src/proxy.ts` (route-only; no cookie gate). `/login`, `/verify-email`, `/forgot-password`, and `/reset-password` stay public.
 - `/reset-password` calls `POST /auth/validate-reset-token` on entry. An expired or invalid token shows `message` and links back to `/forgot-password`. Submitting a new password uses `POST /auth/reset-password`.
 - Auth cookie `ACCESS_TOKEN` is HttpOnly on the API origin (`SameSite=None; Secure; Path=/`). Frontend and API are cross-origin; the Next app never reads this cookie.
