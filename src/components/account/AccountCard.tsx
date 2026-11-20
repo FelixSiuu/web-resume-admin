@@ -30,7 +30,7 @@ const AccountCard = () => {
 
         <Divider />
 
-        <DeleteAccountSection messageApi={messageApi} />
+        <DeleteAccountSection />
       </Card>
     </>
   )

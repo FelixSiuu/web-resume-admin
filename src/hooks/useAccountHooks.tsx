@@ -1,4 +1,4 @@
-import { ChangePasswordDto, EmailDto, EmailVo, accountService } from '@/services/account.service'
+import { ChangePasswordDto, DeleteAccountDto, EmailDto, EmailVo, accountService } from '@/services/account.service'
 import { handleUnauthorized } from '@/services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -19,10 +19,23 @@ export function useChangePasswordMutation() {
   }
 }
 
+export function useRequestDeleteTokenMutation() {
+  const { mutateAsync: requestDeleteToken, isPending: isPendingRequestDeleteToken } = useMutation({
+    mutationFn: async (): Promise<BaseVo<CoolDownVo>> => {
+      return accountService.requestDeleteToken()
+    }
+  })
+
+  return {
+    requestDeleteToken,
+    isPendingRequestDeleteToken
+  }
+}
+
 export function useDeleteAccountMutation() {
   const { mutateAsync: deleteAccount, isPending: isPendingDeleteAccount } = useMutation({
-    mutationFn: async () => {
-      const { isSuccess, message } = await accountService.deleteAccount()
+    mutationFn: async (body: DeleteAccountDto) => {
+      const { isSuccess, message } = await accountService.deleteAccount(body)
       if (!isSuccess) throw new Error(message)
       handleUnauthorized()
     }
