@@ -68,7 +68,7 @@ declare interface LoginVo {
   xsrfToken: string
 }
 
-/** Cooldown payload from POST /auth/forgot-password. `cd` is seconds (int64). */
+/** Cooldown seconds (`cd`) from POST /auth/forgot-password and GET /auth/delete-token. */
 declare interface CoolDownVo {
   cd: number
 }

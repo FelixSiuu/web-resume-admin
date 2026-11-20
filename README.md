@@ -62,6 +62,7 @@ npm run test
 - `/forgot-password`: request a reset link with registration email + captcha; prompt is `BaseVo.message`; cooldown seconds come from `data.cd` on both HTTP 200 and HTTP 4xx (`data === null` is a captcha error: refresh captcha, no countdown)
 - `/reset-password`: email link `?token=`; validates the token on entry, then shows the new-password form
 - `/verify-email`: email link `?token=` confirms the address
+- `/overview/account`: email, password, and delete account. Delete stays in one dialog. `Send verification code` calls `GET /auth/delete-token`, then `Permanently delete` calls `DELETE /account` with `{ code }`. Cancel or close does not delete the account.
 - `/overview/aboutme`
 - `/overview/coreskills`
 - `/overview/workingexperience`
@@ -77,7 +78,9 @@ npm run test
 - HTTP 2xx is success. The body is `BaseVo` (`isSuccess`, `code`, `message`, `data`). The Axios success interceptor returns `response.data` and does not reshape it.
 - Every other error is HTTP 4xx. The body is also `BaseVo`, carried on `error.response.data`. The client reads `message`, and `data` when it is present. Success and error copy shown in the UI come from that `message`.
 - HTTP 401 and 403 are not turned into page-level business results. The interceptor calls `handleUnauthorized()`, which redirects to `/login`. A business API 401 tries `POST /auth/refresh` once first; the redirect happens when that refresh fails, and it happens immediately for auth routes, requests with `skipAuthRefresh`, and every 403.
-- Only `POST /auth/forgot-password` returns `CoolDownVo` (`{ cd: number }`, seconds) on both HTTP 200 and HTTP 4xx. The submit and resend countdown uses `data.cd`. When cooldown data is absent, the client does not invent a duration. Other endpoints do not return `CoolDownVo`.
+- `POST /auth/forgot-password` and `GET /auth/delete-token` return `CoolDownVo` (`{ cd: number }`, seconds) on HTTP 200 and on HTTP 4xx when `data` is present. The countdown uses `data.cd`. When `data` is absent, the client does not invent a duration.
+- `GET /auth/delete-token` takes no body. It is GET even though it sends the delete-account email. When the account email is already verified, an HTTP 4xx body is still `CoolDownVo`: if `data` exists and has `cd`, the dialog starts or continues the resend countdown from `data.cd`. When the email is not verified, `data` is null. The dialog stays on the warning step, shows `message`, and asks the user to verify their email in the Email section on `/overview/account`. Treat `data` as optional.
+- `DELETE /account` requires JSON `{ code: string }` (6 letters or numbers, checked in the client before submit). The response is `BaseVo<void>`. The UI shows `message`. A wrong code leaves the dialog open and shows that message on the code field. Success still signs the user out and redirects to `/login`. HTTP 401 and 403 keep the existing interceptor redirect to `/login`, with no extra handling on these endpoints.
 
 ## Auth & Routing Notes
 
